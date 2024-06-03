@@ -1,19 +1,15 @@
 """
-学习修饰器的使用
+第三次作业:修饰器的使用
+求和、求平均数
 """
+
 import functools
+import random
 
 def input_validation(func):
     @functools.wraps(func)
     def wrapper(self):
-        while True:
-            try:
-                num = input("请输入一个整数或者浮点数（按q退出）：")
-                if num.lower() == 'q':
-                    break
-                self.numbers.append(float(num))
-            except ValueError:
-                print("输入无效，请重新输入。")
+        self.numbers = [random.uniform(-100, 100) if random.random() > 0.5 else random.randint(-100, 100) for _ in range(random.randint(5, 20))]
         return func(self)
     return wrapper
 
@@ -21,6 +17,7 @@ def output_decorator(func):
     @functools.wraps(func)
     def wrapper(self):
         result = func(self)
+        print(f"基于以下数字进行计算: {self.numbers}")
         print("结果为:", result)
     return wrapper
 
@@ -29,7 +26,7 @@ class NumberCalculator:
         self.numbers = []
 
     @input_validation
-    def get_numbers(self):
+    def generate_numbers(self):  # 修改方法名称为 generate_numbers
         pass
 
     @output_decorator
@@ -39,7 +36,7 @@ class NumberCalculator:
         else:
             total = sum(self.numbers)
             average = total / len(self.numbers)
-            return average
+            return f"平均数为: {average:.2f}"
 
     @output_decorator
     def calculate_sum(self):
@@ -47,20 +44,12 @@ class NumberCalculator:
             return "没有输入数字。"
         else:
             total = sum(self.numbers)
-            return total
+            return f"总和为: {total:.2f}"
 
     def perform_calculation(self):
-        choice = input("请选择要执行的操作（1-求和，2-求平均数，3-求和和平均数）：")
-        if choice == '1':
-            self.calculate_sum()
-        elif choice == '2':
-            self.calculate_average()
-        elif choice == '3':
-            self.calculate_sum()
-            self.calculate_average()
-        else:
-            print("无效的选择。请重新选择。")
+        self.generate_numbers()
+        self.calculate_sum()
+        self.calculate_average()
 
 calculator = NumberCalculator()
-calculator.get_numbers()
 calculator.perform_calculation()
