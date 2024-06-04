@@ -1,1 +1,97 @@
+import random
+import string
+import time
 
+
+def timeit(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        print(f"执行 {func.__name__} 所花费的时间: {end_time - start_time} 秒")
+        return result
+
+    return wrapper
+
+
+def log_method_call(func):
+    def wrapper(*args, **kwargs):
+        print(f"调用了 {func.__name__} 方法")
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+class RandomListGenerator:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def generateRandomLists(datatype_list, num_lists):
+        """
+        :Description: Generate a specified number of random lists, each containing a random number of variables of random types.
+        :param datatype_list: A list containing data types to randomly choose from.
+        :param num_lists: The number of lists to generate.
+        :return: A list where each sublist contains a random number of variables of random types.
+        """
+        result = []
+        for _ in range(num_lists):
+            sublist = []
+            sublist_length = random.randint(1, len(datatype_list))  # Randomly select the length of the sublist
+            for _ in range(sublist_length):
+                datatype = random.choice(datatype_list)
+                item = None
+                if datatype == 'int':
+                    item = random.randint(1, 200)
+                elif datatype == 'float':
+                    item = round(random.uniform(0.0, 100.0), 2)
+                elif datatype == 'str':
+                    item = ''.join(random.choices(string.ascii_letters, k=random.randint(1, 10)))
+                elif datatype == 'bool':
+                    item = random.choice([True, False])
+                elif datatype == 'list':
+                    item = random.sample(range(10), random.randint(1, 5))
+                sublist.append((item, datatype))
+            result.append(sublist)
+        return result
+
+    @staticmethod
+    def printRandomLists(random_lists):
+        """
+        :Description: Print each sublist in the list.
+        :param random_lists: A list containing sublists of random data of user-specified data types.
+        """
+        # Map data types to their respective strings
+        data_type_mapping = {'str': '字符串', 'int': '整数', 'float': '浮点数', 'bool': '布尔值', 'list': '列表'}
+
+        for i, sublist in enumerate(random_lists, start=1):
+            modified_sublist = []
+            for value, datatype in sublist:
+                # Modify the sublist to have the same content but different order
+                modified_sublist.append((datatype, value))
+            print(f"列表 {i}: {modified_sublist}")
+
+    @timeit
+    @log_method_call
+    def generate_and_print(self, datatype_list, num_lists):
+        """
+        :Description: Generate random lists and print them.
+        :param datatype_list: A list containing data types to randomly choose from.
+        :param num_lists: The number of lists to generate.
+        """
+        # Generate random lists
+        random_lists = self.generateRandomLists(datatype_list, num_lists)
+
+        # Print the generated random lists
+        self.printRandomLists(random_lists)
+
+
+# Example usage:
+num_lists = int(input("请输入要生成的列表数："))
+datatype_list = ['str', 'int', 'float', 'bool', 'list']
+
+# Create an instance of the RandomListGenerator class
+generator = RandomListGenerator()
+
+# Generate random lists and print them, with timing and method call logging
+generator.generate_and_print(datatype_list, num_lists)
