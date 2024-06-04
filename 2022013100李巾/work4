@@ -1,0 +1,73 @@
+import random
+import string
+
+
+class RandomListGenerator:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def generate_random_lists(datatype_list, num_lists_per_page, num_pages):
+        """
+        Generate random lists page by page up to the specified number of pages.
+
+        :param datatype_list: A list containing data types to randomly choose from.
+        :param num_lists_per_page: The number of lists to generate per page.
+        :param num_pages: The total number of pages to generate.
+        :yield: A page containing random lists, each containing a random number of variables of random types.
+        """
+        for _ in range(num_pages):
+            page = []
+            for _ in range(num_lists_per_page):
+                sublist = []
+                sublist_length = random.randint(1, len(datatype_list))  # Randomly select the length of the sublist
+                for _ in range(sublist_length):
+                    datatype = random.choice(datatype_list)
+                    item = None
+                    if datatype == 'int':
+                        item = random.randint(1, 200)
+                    elif datatype == 'float':
+                        item = round(random.uniform(0.0, 100.0), 2)
+                    elif datatype == 'str':
+                        item = ''.join(random.choices(string.ascii_letters, k=random.randint(1, 10)))
+                    elif datatype == 'bool':
+                        item = random.choice([True, False])
+                    elif datatype == 'list':
+                        item = random.sample(range(10), random.randint(1, 5))
+                    sublist.append((item, datatype))
+                page.append(sublist)
+            yield page
+
+    @staticmethod
+    def print_random_lists(random_lists):
+        """
+        Print each sublist in the list.
+
+        :param random_lists: A list containing sublists of random data of user-specified data types.
+        """
+        # Map data types to their respective strings
+        data_type_mapping = {'str': '字符串', 'int': '整数', 'float': '浮点数', 'bool': '布尔值', 'list': '列表'}
+
+        for i, sublist in enumerate(random_lists, start=1):
+            modified_sublist = []
+            for value, datatype in sublist:
+                # Modify the sublist to have the same content but different order
+                modified_sublist.append((datatype, value))
+            print(f"列表 {i}: {modified_sublist}")
+
+
+# Example usage:
+num_lists_per_page = 5  # Number of lists per page
+datatype_list = ['str', 'int', 'float', 'bool', 'list']
+num_pages = int(input("请输入要生成的页数："))
+
+# Create an instance of the RandomListGenerator class
+generator = RandomListGenerator()
+
+# Generate random lists page by page based on user-specified number of pages and print them
+page_generator = generator.generate_random_lists(datatype_list, num_lists_per_page, num_pages)
+for page_num, page in enumerate(page_generator, start=1):
+    print(f"第 {page_num} 页:")
+    generator.print_random_lists(page)
+    print()  # Add a blank line between pages
+
