@@ -1,1 +1,56 @@
+import random
+import string
 
+def generate_random_lists(datatype_list, num_lists):
+    """
+    生成指定数量的随机列表，每个列表包含随机数量的随机类型的变量。
+
+    :param datatype_list: 包含要随机选择的数据类型的列表
+    :param num_lists: 要生成的列表数
+    :return: 一个列表，每个列表包含随机数量的随机类型的变量
+    """
+    result = []
+    for _ in range(num_lists):
+        sublist = []
+        sublist_length = random.randint(1, len(datatype_list))  # 随机选择子列表的长度
+        for _ in range(sublist_length):
+            datatype = random.choice(datatype_list)
+            item = None
+            if datatype == 'int':
+                item = random.randint(1, 200)
+            elif datatype == 'float':
+                item = round(random.uniform(0.0, 100.0), 2)
+            elif datatype == 'str':
+                item = ''.join(random.choices(string.ascii_letters, k=random.randint(1, 10)))
+            elif datatype == 'bool':
+                item = random.choice([True, False])
+            elif datatype == 'list':
+                item = random.sample(range(10), random.randint(1, 5))
+            sublist.append((item, datatype))
+        result.append(sublist)
+    return result
+
+def print_random_lists(random_lists):
+    """
+    分别打印列表中的每个列表。
+
+    :param random_lists: 包含用户指定数据类型的随机数据的列表列表
+    """
+    # 将数据类型映射到所需的字符串
+    data_type_mapping = {'str': '字符串', 'int': '整数', 'float': '浮点数', 'bool': '布尔值', 'list': '列表'}
+
+    for i, sublist in enumerate(random_lists, start=1):
+        modified_sublist = [(value, data_type_mapping[datatype]) for value, datatype in sublist]
+        print(f"列表 {i}: {modified_sublist}")
+
+# 提示用户输入要生成的列表数
+num_lists = int(input("请输入要生成的列表数："))
+
+# 生成包含不同数据类型的列表
+datatype_list = ['str', 'int', 'float', 'bool', 'list']
+
+# 使用用户指定的参数生成随机列表
+data_list = generate_random_lists(datatype_list, num_lists)
+
+# 打印生成的随机列表
+print_random_lists(data_list)
