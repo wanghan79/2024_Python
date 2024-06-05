@@ -1,1 +1,66 @@
+import random
+import string
+
+def print_random_lists(func):
+    def wrapper(random_lists):
+        data_type_mapping = {'str': '字符串', 'int': '整数', 'float': '浮点数', 'bool': '布尔值', 'list': '列表'}
+        for i, random_list in enumerate(random_lists, start=1):
+            modified_list = [(value, data_type_mapping[datatype]) for value, datatype in random_list]
+            print(f"列表 {i}: {modified_list}")
+        func(random_lists)
+    return wrapper
+
+class RandomListGenerator:
+    def __init__(self, datatype_list):
+        self.datatype_list = datatype_list
+
+    def generate_random_list(self):
+        """
+        生成一个随机列表，包含随机数量的随机类型的变量。
+
+        :return: 一个列表，包含随机数量的随机类型的变量
+        """
+        sublist = []
+        sublist_length = random.randint(1, len(self.datatype_list))
+        for _ in range(sublist_length):
+            datatype = random.choice(self.datatype_list)
+            item = None
+            if datatype == 'int':
+                item = random.randint(1, 200)
+            elif datatype == 'float':
+                item = round(random.uniform(0.0, 100.0), 2)
+            elif datatype == 'str':
+                item = ''.join(random.choices(string.ascii_letters, k=random.randint(1, 10)))
+            elif datatype == 'bool':
+                item = random.choice([True, False])
+            elif datatype == 'list':
+                item = random.sample(range(10), random.randint(1, 5))
+            sublist.append((item, datatype))
+        return sublist
+
+class RandomListPrinter:
+    @staticmethod
+    @print_random_lists
+    def print_random_lists(random_lists):
+        """
+        打印生成的随机列表。
+
+        :param random_lists: 包含用户指定数据类型的随机数据的列表列表
+        """
+        pass
+
+# 提示用户输入要生成的列表数
+num_lists = int(input("请输入要生成的列表数："))
+
+# 生成包含不同数据类型的列表
+datatype_list = ['str', 'int', 'float', 'bool', 'list']
+
+# 创建随机列表生成器实例
+list_generator = RandomListGenerator(datatype_list)
+
+# 生成随机列表
+random_lists = [list_generator.generate_random_list() for _ in range(num_lists)]
+
+# 打印生成的随机列表
+RandomListPrinter.print_random_lists(random_lists)
 
