@@ -1,1 +1,72 @@
+import random
+import string
+
+def dataSampling(kwargs):
+    if kwargs['datatype'] == 'int':
+        it = iter(kwargs['datarange'])
+        yield random.randint(next(it), next(it))
+    elif kwargs['datatype'] == 'float':
+        it = iter(kwargs['datarange'])
+        yield random.uniform(next(it), next(it))
+    elif kwargs['datatype'] == 'str':
+        if isinstance(kwargs['datarange'], int):
+            yield ''.join(random.SystemRandom().choice(string.ascii_uppercase) for _ in range(kwargs['datarange']))
+    elif kwargs['datatype'] in ('list', 'tuple'):
+        elements = []
+        for key, sub_kwargs in kwargs['subs'].items():
+            yield from dataSampling(sub_kwargs)
+    elif kwargs['datatype'] == 'dict':
+        result_dict = {}
+        for key, sub_kwargs in kwargs['subs'].items():
+            result_dict[key] = yield from dataSampling(sub_kwargs)
+        yield result_dict
+    else:
+        raise ValueError("Unknown data type")
+
+def apply(**kwargs):
+    for _ in range(kwargs['num']):
+        yield from dataSampling(kwargs['struct'])
+
+para = {
+    "num": 5,
+    "struct": {
+        "datatype": "tuple",
+        "subs": {
+            "sub1": {
+                "datatype": "tuple",
+                "subs": {
+                    "sub1": {
+                        "datatype": "int",
+                        "datarange": (0, 100)
+                    },
+                    "sub2": {
+                        "datatype": "float",
+                        "datarange": (1.5, 8.7)
+                    }
+                }
+            },
+            "sub2": {
+                "datatype": "str",
+                "datarange": 10  # 指定字符串长度为10
+            },
+            "sub3": {
+                "datatype": "list",
+                "subs": {
+                    "sub1": {
+                        "datatype": "int",
+                        "datarange": (89, 200)
+                    },
+                    "sub2": {
+                        "datatype": "float",
+                        "datarange": (7, 10)
+                    }
+                }
+            }
+        }
+    }
+}
+
+results = apply(**para)
+for result in results:
+    print(result)
 
