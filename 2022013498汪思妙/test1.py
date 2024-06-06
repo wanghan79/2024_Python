@@ -1,47 +1,44 @@
+
 import random
 import string
 
-def generate_random_data(data_struct):
+def create_random_value(data_type, data_config):
+    if data_type == 'int':
+        return random.randint(*data_config['range'])
+    elif data_type == 'float':
+        return round(random.uniform(*data_config['range']), 2)
+    elif data_type == 'str':
+        return ''.join(random.choice(string.ascii_letters) for _ in range(data_config['length']))
+    elif data_type == 'bool':
+        return random.choice([True, False])
+    elif data_type == 'list':
+        return random.sample(data_config['datarange'], random.randint(1, len(data_config['datarange'])))
+    else:
+        print(f"Unsupported data type: {data_type}")
+        return None
+
+def generate_sample(data_config):
     sample = {}
-    for data_type, data_options in data_struct.items():
-        if data_type == 'string':
-            datarange = data_options.get('datarange', string.ascii_uppercase)
-            len_range = data_options.get('len', (5, 10))
-            str_len = random.randint(len_range[0], len_range[1])
-            sample[data_type] = ''.join(random.choices(datarange, k=str_len))
-        elif data_type == 'int':
-            datarange = data_options.get('datarange', (1, 100))
-            sample[data_type] = random.randint(datarange[0], datarange[1])
-        elif data_type == 'float' or data_type == 'double':
-            datarange = data_options.get('datarange', (0.0, 100.0))
-            sample[data_type] = round(random.uniform(datarange[0], datarange[1]), 2)
-        elif data_type == 'list':
-            datarange = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science']
-            sample[data_type] = random.sample(datarange, min(len(datarange), random.randint(1, len(datarange))))
-        elif data_type == 'tuple':
-            datarange = tuple(datarange)
-            sample[data_type] = tuple(random.sample(list(datarange), min(len(datarange), random.randint(1, len(datarange)))))
+    for data_type, config in data_config.items():
+        sample[data_type] = create_random_value(data_type, config)
     return sample
 
-def generate_samples(num_samples, data_struct):
-    results = []
-    for _ in range(num_samples):
-        sample = generate_random_data(data_struct)
-        results.append(sample)
-    return results
+def generate_multiple_samples(data_config, num_samples):
+    return [generate_sample(data_config) for _ in range(num_samples)]
 
-# 定义数据结构和样本数量
-num_samples = 5  # 这里设定生成5个样本
-data_struct = {
-    'string': {'datarange': string.ascii_uppercase, 'len': (5, 10)},
-    'int': {'datarange': (1, 100)},
-    'float': {'datarange': (0.0, 100.0)},
-    'double': {'datarange': (0.0, 100.0)},
-    'list': {},
-    'tuple': {}
+# 定义生成随机数据的参数
+data_config = {
+    'int': {'range': (1, 100)},
+    'float': {'range': (0.0, 100.0)},
+    'str': {'length': 10},
+    'bool': {},
+    'list': {'datarange': ['red', 'green', 'blue', 'yellow', 'black', 'white']}
 }
 
-samples = generate_samples(num_samples, data_struct)
+# 生成5个样本
+num_samples = 5
+samples = generate_multiple_samples(data_config, num_samples)
 
-for sample in samples:
-    print(sample)
+# 打印生成的样本
+for i, sample in enumerate(samples, start=1):
+    print(f"Sample {i}: {sample}")
