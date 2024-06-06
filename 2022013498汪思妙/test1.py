@@ -7,7 +7,7 @@ def create_random_value(data_type, data_config):
     elif data_type == 'float':
         return round(random.uniform(*data_config['range']), 2)
     elif data_type == 'str':
-        return ''.join(random.choice(string.ascii_letters) for _ in range(data_config['length']))
+        return ''.join(random.choice(data_config['datarange']) for _ in range(data_config['length']))
     elif data_type == 'bool':
         return random.choice([True, False])
     elif data_type == 'list':
@@ -24,17 +24,14 @@ def generate_sample(data_config):
 
 def generate_multiple_samples(data_config, num_samples):
     return [generate_sample(data_config) for _ in range(num_samples)]
-
-# 定义生成随机数据的参数
+    
 data_config = {
     'int': {'range': (1, 100)},
     'float': {'range': (0.0, 100.0)},
-    'str': {'length': 10},
+    'str': {'length': 10, 'datarange': string.ascii_letters},
     'bool': {},
     'list': {'datarange': ['red', 'green', 'blue', 'yellow', 'black', 'white']}
 }
-
-# 生成5个样本
 num_samples = 5
 samples = generate_multiple_samples(data_config, num_samples)
 
