@@ -1,1 +1,108 @@
+import random
+import string
 
+# 定义装饰器Sat
+def Sat(*args):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            # 调用被修饰的函数并返回结果
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+# 使用Sat装饰器修饰dataSampling方法
+@Sat()
+def dataSampling(kwargs):
+    if kwargs.get('datatype') == 'int':
+        it = iter(kwargs['datarange'])
+        return random.randint(next(it), next(it))
+    elif kwargs.get('datatype') == 'float':
+        it = iter(kwargs['datarange'])
+        return random.uniform(next(it), next(it))
+    elif kwargs.get('datatype') == 'str':
+        if isinstance(kwargs['datarange'], int):
+            return ''.join(random.SystemRandom().choice(string.ascii_uppercase) for _ in range(kwargs['datarange']))
+    elif kwargs.get('datatype') in ('list', 'tuple'):
+        elements = []
+        for key, sub_kwargs in kwargs['subs'].items():
+            elements.append(dataSampling(sub_kwargs))
+        if kwargs.get('datatype') == 'list':
+            return elements
+        else:
+            return tuple(elements)
+    elif kwargs.get('datatype') == 'dict':
+        data = {}
+        for key, sub_kwargs in kwargs['subs'].items():
+            data[key] = dataSampling(sub_kwargs)
+        return data
+    else:
+        raise ValueError("Unknown data type: {}".format(kwargs.get('datatype')))
+
+def Analysis(data, *args):
+    if isinstance(data, dict):
+        if args:
+            if args[0] == 'sum':
+                total = 0
+                for value in data.values():
+                    if isinstance(value, tuple):
+                        total += sum(value)
+                    else:
+                        sub_result = Analysis(value, *args)
+                        if sub_result is not None:
+                            total += sub_result
+                return total
+            elif args[0] == 'mean':
+                total_sum = 0
+                total_count = 0
+                for value in data.values():
+                    if isinstance(value, tuple):
+                        total_sum += sum(value)
+                        total_count += len(value)
+                    else:
+                        sub_sum, sub_count = Analysis(value, *args)
+                        if sub_sum is not None and sub_count is not None:
+                            total_sum += sub_sum
+                            total_count += sub_count
+                return total_sum, total_count
+
+    elif isinstance(data, (list, tuple)):
+        if args:
+            if args[0] == 'sum':
+                return sum(data)
+            elif args[0] == 'mean':
+                return sum(data), len(data)
+
+# 参数定义
+para = {
+    "num": 5,
+    "struct": {
+        "datatype": "dict",
+        "subs": {
+            "sub1": {
+                "datatype": "tuple",
+                "subs": {
+                    "sub1": {
+                        "datatype": "int",
+                        "datarange": (0, 100)
+                    },
+                    "sub2": {
+                        "datatype": "float",
+                        "datarange": (1.5, 8.7)
+                    }
+                }
+            },
+            "sub2": {
+                "datatype": "str",
+                "datarange": 10
+            }
+        }
+    }
+}
+
+# 随机生成字典
+random_dict = dataSampling(para['struct'])
+print("随机生成的字典：", random_dict)
+
+# 运算结果
+result = Analysis(random_dict, 'sum')
+print("运算结果：", result)
