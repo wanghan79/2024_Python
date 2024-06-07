@@ -1,0 +1,106 @@
+import random
+import string
+if __name__ == '__main__':
+    def extract_integers(data):
+        """
+        Recursively traverse the nested data structure and extract all integer values.
+
+        Args:
+            data: Nested data structure.
+
+        Returns:
+            list: List of extracted integer values.
+        """
+        integers = []
+
+        if isinstance(data, int):
+            integers.append(data)
+        elif isinstance(data, (list, tuple, set)):
+            for item in data:
+                integers.extend(extract_integers(item))
+        elif isinstance(data, dict):
+            for item in data.values():
+                integers.extend(extract_integers(item))
+
+        return integers
+
+
+    def calculate_data(operation, integers):
+        """
+        Calculate the sum or average of a list of integers.
+
+        Args:
+            operation (str): The operation to perform, either 'sum' or 'average'.
+            integers (list): List of integers.
+
+        Returns:
+            float: The sum or average of the integers.
+        """
+        if operation == 'sum':
+            result = sum(integers)
+        elif operation == 'average':
+            result = sum(integers) / len(integers)
+        else:
+            raise ValueError(f"Invalid operation. Please choose either 'sum' or 'average'.")
+
+        return result
+
+
+    def data_sample_inner(**kwargs):
+        result = []
+        for k, v in kwargs.items():
+            if k == 'int':
+                for kk, vv in v.items():
+                    if kk == 'datarange':
+                        range_l = vv[0]
+                        range_r = vv[1]
+                result.append(random.randint(range_l, range_r))
+            elif k == 'float':
+                for kk, vv in v.items():
+                    if kk == 'datarange':
+                        range_l = vv[0]
+                        range_r = vv[1]
+                result.append(random.uniform(range_l, range_r))
+            elif k == 'str':
+                for kk, vv in v.items():
+                    if kk == 'datarange':
+                        chars = vv
+                    elif kk == 'len':
+                        str_len = vv
+                result.append(''.join(random.choice(chars) for _ in range(str_len)))
+            elif k == 'tuple':
+                tmp = data_sample_inner(**v)
+                result.append(tuple(tmp))
+            elif k == 'list':
+                tmp = data_sample_inner(**v)
+                result.append(tmp)
+            elif k == 'set':
+                tmp = data_sample_inner(**v)
+                result.append(set(tmp))
+        return result
+
+
+    def data_sample(**kwargs):
+        num = kwargs.pop('num')
+        data = []
+        for _ in range(int(num)):
+            data.append(data_sample_inner(**kwargs))
+        return data
+
+    # Generate random data
+    random_data = data_sample(**{'num': 5, 'tuple': {'int': {'datarange': [1, 10]},
+                                                     'list': {'int': {'datarange': [1, 10]},
+                                                              'str': {'datarange': string.ascii_lowercase, 'len': 8},
+                                                              'tuple': {'str': {'datarange': string.ascii_lowercase,
+                                                                                'len': 5}}}}})
+
+    # Extract all integers
+    integers = extract_integers(random_data)
+    print(random_data)
+    # Calculate sum
+    sum_result = calculate_data('sum', integers)
+    print("Sum:", sum_result)
+
+    # Calculate average
+    average_result = calculate_data('average', integers)
+    print("Average:", average_result)
