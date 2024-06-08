@@ -1,0 +1,57 @@
+import random
+import string
+
+class RandomDataCreator:
+    def __init__(self, data_spec):
+        self.data_spec = data_spec
+
+    def create_random_data(self, data_spec):
+        data_type = data_spec.get('datatype')
+        subs = data_spec.get('subs', [])
+
+        if data_type == 'tuple':
+            return tuple(self.create_random_data(sub) for sub in subs)
+        elif data_type == 'list':
+            return [self.create_random_data(sub) for sub in subs]
+        elif data_type == 'str':
+            length = random.randint(*data_spec['datarange'])
+            return ''.join(random.choices(string.ascii_uppercase, k=length))
+        elif data_type == 'int':
+            return random.randint(*data_spec['datarange'])
+        elif data_type == 'float':
+            return random.uniform(*data_spec['datarange'])
+
+    def generate_samples(self, num_samples):
+        return [self.create_random_data(self.data_spec) for _ in range(num_samples)]
+
+# 使用类生成随机数据
+if __name__ == "__main__":
+    
+    data_structure = {
+        'datatype': 'tuple',
+        'subs': [
+            {
+                'datatype': 'list',
+                'subs': [
+                    {'datatype': 'int', 'datarange': (1, 100)},
+                    {'datatype': 'str', 'datarange': (1, 10)}
+                ]
+            },
+            {
+                'datatype': 'tuple',
+                'subs': [
+                    {'datatype': 'float', 'datarange': (0, 1000)},
+                    {'datatype': 'int', 'datarange': (1, 100)}
+                ]
+            },
+            {'datatype': 'str', 'datarange': (1, 10)}
+        ]
+    }
+
+    creator = RandomDataCreator(data_structure)
+
+    num_samples = 6
+    samples = creator.generate_samples(num_samples)
+
+    for sample in samples:
+        print(sample)
