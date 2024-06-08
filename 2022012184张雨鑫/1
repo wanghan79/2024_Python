@@ -1,1 +1,54 @@
+import random
+import string
 
+def create_random_data(data_spec):
+
+    data_type = data_spec.get('datatype')
+    subs = data_spec.get('subs', [])
+    
+    if data_type == 'tuple':
+        # 元组结构生成数据
+        return tuple(create_random_data(sub) for sub in subs)
+    elif data_type == 'list':
+        # 列表结构生成数据
+        return [create_random_data(sub) for sub in subs]
+    elif data_type == 'str':
+        # 生成随机长度的字符串
+        length = random.randint(*data_spec['datarange'])
+        return ''.join(random.choices(string.ascii_uppercase, k=length))
+    elif data_type == 'int':
+        # 生成指定范围内的随机整数
+        return random.randint(*data_spec['datarange'])
+    elif data_type == 'float':
+        # 生成指定范围内的随机浮点数
+        return random.uniform(*data_spec['datarange'])
+
+# 定义字典,数据结构规范
+data_structure = {
+    'datatype': 'tuple',
+    'subs': [
+        {
+            'datatype': 'list',
+            'subs': [
+                {'datatype': 'int', 'datarange': (1, 100)},
+                {'datatype': 'str', 'datarange': (1, 10)}
+            ]
+        },
+        {
+            'datatype': 'tuple',
+            'subs': [
+                {'datatype': 'float', 'datarange': (0, 1000)},
+                {'datatype': 'int', 'datarange': (1, 100)}
+            ]
+        },
+        {'datatype': 'str', 'datarange': (1, 10)}
+    ]
+}
+
+# 假设生成6个随机数据
+num_samples = 6
+samples = [create_random_data(data_structure) for _ in range(num_samples)]
+
+# 打印生成的随机数据
+for sample in samples:
+    print(sample)
