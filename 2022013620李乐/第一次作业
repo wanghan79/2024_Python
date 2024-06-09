@@ -1,0 +1,59 @@
+import random
+import string
+
+def data_sampling_int(datarange):
+    return random.randint(*datarange)
+
+def data_sampling_float(datarange):
+    return random.uniform(*datarange)
+
+def data_sampling_str(datarange):
+    if isinstance(datarange, str):
+        return random.choice(datarange)
+    elif isinstance(datarange, int):
+        return ''.join(random.SystemRandom().choice(string.ascii_letters) for _ in range(datarange))
+
+def data_sampling_list_or_tuple(subs, datatype):
+    elements = [data_sampling(sub_kwargs) for _, sub_kwargs in subs.items()]
+    if datatype == 'list':
+        return elements
+    else:  # tuple
+        return tuple(elements)
+
+def data_sampling(kwargs):
+    if kwargs['datatype'] == 'int':
+        return data_sampling_int(kwargs['datarange'])
+    elif kwargs['datatype'] == 'float':
+        return data_sampling_float(kwargs['datarange'])
+    elif kwargs['datatype'] == 'str':
+        return data_sampling_str(kwargs['datarange'])
+    elif kwargs['datatype'] in ('list', 'tuple'):
+        return data_sampling_list_or_tuple(kwargs['subs'], kwargs['datatype'])
+
+def apply(struct, num):
+    results = [data_sampling(struct) for _ in range(num)]
+    return results
+
+# Define data structure
+data_struct = {
+    'datatype': 'tuple',
+    'subs': {
+        'int_data': {'datatype': 'int', 'datarange': (1, 10)},  # Generate an integer between 1 and 10
+        'float_data': {'datatype': 'float', 'datarange': (0.0, 1.0)},  # Generate a float between 0.0 and 1.0
+        'str_data': {'datatype': 'str', 'datarange': string.ascii_letters},  # Randomly choose a character from ASCII letters
+        'list_data': {
+            'datatype': 'list',
+            'subs': {
+                'list_item1': {'datatype': 'int', 'datarange': (10, 20)},  # Generate an integer between 10 and 20
+                'list_item2': {'datatype': 'str', 'datarange': 5}  # Generate a string of length 5
+            }
+        }
+    }
+}
+
+# Call apply function
+results = apply(struct=data_struct, num=5)
+
+# Print results
+for result in results:
+    print(result)
