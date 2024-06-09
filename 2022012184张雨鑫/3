@@ -1,1 +1,78 @@
+import random
+import string
+from collections import defaultdict
 
+# 用于创建统计数据类型的修饰器
+def data_type_statistics(stats):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            # 调用原始函数，传递参数
+            result = func(*args, **kwargs)
+            
+            # 定义一个辅助函数来递归统计数据类型
+            def count_data(data):
+                if isinstance(data, (list, tuple)):
+                    # 如果是列表或元组，递归统计其中的元素
+                    for item in data:
+                        count_data(item)
+                else:
+                    # 统计当前数据的类型
+                    stats[type(data).__name__] += 1
+            
+            # 统计生成的数据类型
+            count_data(result)
+            return result
+        return wrapper
+    return decorator
+
+#初始化stats字典
+stats = defaultdict(int)
+
+@data_type_statistics(stats)
+def create_random_data(data_spec):
+    data_type = data_spec.get('datatype')
+    subs = data_spec.get('subs', [])
+    datarange = data_spec.get('datarange', (1, 100))  #默认范围
+
+    #根据数据类型生成数据
+    if data_type == 'tuple':
+        return tuple(create_random_data(sub) for sub in subs)
+    elif data_type == 'list':
+        return [create_random_data(sub) for sub in subs]
+    elif data_type == 'str':
+        length = random.randint(*datarange)
+        return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+    elif data_type == 'int':
+        return random.randint(*datarange)
+    elif data_type == 'float':
+        return round(random.uniform(*datarange), 2)
+
+#定义数据结构规范
+data_structure = {
+    'datatype': 'tuple',
+    'subs': [
+        {
+            'datatype': 'list',
+            'subs': [
+                {'datatype': 'int', 'datarange': (1, 100)},
+                {'datatype': 'str', 'datarange': (1, 10)}
+            ]
+        },
+        {
+            'datatype': 'tuple',
+            'subs': [
+                {'datatype': 'float', 'datarange': (0, 100)},
+                {'datatype': 'int', 'datarange': (1, 100)}
+            ]
+        },
+        {'datatype': 'str', 'datarange': (1, 10)}
+    ]
+}
+
+num_samples = 6
+samples = [create_random_data(data_structure) for _ in range(num_samples)]
+
+for sample in samples:
+    print(sample)
+
+print("Data type statistics:", dict(stats))
