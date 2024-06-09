@@ -1,1 +1,53 @@
+import random
+import string
 
+def create_random_data():
+    data_structure_spec = {
+        'datatype': 'tuple',
+        'subs': [
+            {
+                'datatype': 'list',
+                'subs': [
+                    {'datatype': 'int', 'datarange': (1, 100)},
+                    {'datatype': 'str', 'datarange': (1, 10)}
+                ]
+            },
+            {
+                'datatype': 'tuple',
+                'subs': [
+                    {'datatype': 'float', 'datarange': (0, 1000)},
+                    {'datatype': 'int', 'datarange': (1, 100)}
+                ]
+            },
+            {'datatype': 'str', 'datarange': (1, 10)}
+        ]
+    }
+    
+    def generate_data(spec):
+        data_type = spec['datatype']
+        subs = spec.get('subs', [])
+        datarange = spec.get('datarange', (1, 10))
+
+        if data_type == 'tuple':
+            return tuple(generate_data(sub) for sub in subs)
+        elif data_type == 'list':
+            return [generate_data(sub) for sub in subs]
+        elif data_type == 'str':
+            length = random.randint(*datarange)
+            return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+        elif data_type == 'int':
+            return random.randint(*datarange)
+        elif data_type == 'float':
+            return round(random.uniform(*datarange), 2)  # 保留两位小数
+
+    while True:  # 创建一个无限循环生成器
+        yield generate_data(data_structure_spec)
+
+# 使用生成器
+num_samples = 6
+random_data_gen = create_random_data()
+
+samples = [next(random_data_gen) for _ in range(num_samples)]
+
+for sample in samples:
+    print(sample)
