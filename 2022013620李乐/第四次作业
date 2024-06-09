@@ -1,0 +1,73 @@
+import random
+import string
+from itertools import cycle, islice
+
+class DataGenerator:
+    def __init__(self, datatypes):
+        self.datatypes = datatypes
+
+    def generate_random_item(self, datatype):
+        """根据数据类型生成随机项"""
+        if datatype == 'int':
+            return random.randint(1, 200)
+        elif datatype == 'float':
+            return round(random.uniform(0.0, 100.0), 2)
+        elif datatype == 'str':
+            length = random.randint(1, 10)
+            return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
+        elif datatype == 'bool':
+            return random.choice([True, False])
+        elif datatype == 'list':
+            sample_size = random.randint(1, 5)
+            return [random.randint(1, 10) for _ in range(sample_size)]
+
+    def generate_random_lists(self, num_lists):
+        """生成指定数量的随机列表"""
+        datatypes_cycle = cycle(self.datatypes)  # 创建无限循环的数据类型迭代器
+        for _ in range(num_lists):
+            sublist_length = random.randint(1, len(self.datatypes))
+            sublist = [(self.generate_random_item(datatype), datatype) for datatype in islice(datatypes_cycle, sublist_length)]
+            yield sublist
+
+    def calculate_sum(self, num_lists):
+        """计算数值类型数据的总和"""
+        total = 0
+        for sublist in self.generate_random_lists(num_lists):
+            for value, datatype in sublist:
+                if datatype in ('int', 'float'):
+                    total += value
+        return total
+
+    def calculate_average(self, num_lists):
+        """计算数值类型数据的平均值"""
+        total, count = 0, 0
+        for sublist in self.generate_random_lists(num_lists):
+            for value, datatype in sublist:
+                if datatype in ('int', 'float'):
+                    total += value
+                    count += 1
+        return total / count if count else 0
+
+# 获取用户输入生成随机数的个数
+num_lists = int(input("请输入要生成的随机列表数量："))
+
+# 实例化DataGenerator对象
+generator = DataGenerator(['int', 'float', 'str', 'bool'])
+
+# 打印随机列表
+print("生成的随机列表如下：")
+for i, sublist in enumerate(generator.generate_random_lists(num_lists), start=1):
+    print(f"列表 {i}: {sublist}")
+
+# 用户选择求和或求平均值
+operation = input("请选择要进行的操作（'s' 求和, '/a' 求平均值）：")
+
+# 执行操作
+if operation.lower() == 's':
+    result = generator.calculate_sum(num_lists)
+    print(f"数值类型的总和为: {result}")
+elif operation.lower() == 'a':
+    result = generator.calculate_average(num_lists)
+    print(f"数值类型的平均值为: {result:.2f}")
+else:
+    print("没有该选项，请重新选择。")
