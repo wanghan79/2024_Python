@@ -1,0 +1,34 @@
+在下述作业1代码以及之后的三个作业里，您看到的set和dict类型的数据结构都不要动，是我额外加的但不如tuple和list（其中2、3、4没管set和dict）
+在tuple和list结构里面必须严格按照要求写出下述结构，如（以tuple为例）：
+nomaltype_type（tup/lst） = {
+    "intstruct": {"datatype":int,"range":(0, 1000)},
+    "floatstruct":{"datatype":float,"range":(0, 100)},
+    "strstruct": {"datatype":str,"range": string.ascii_uppercase, "len": 4},
+    "substruct":{
+        "datatype":type（tuple或list，像int、float、str之类就在上面实现就行，没必要再这里实现）,
+        "struct":{
+     #这里是你所写的以该结构为基础的分支结构，可以嵌套很多种，只要你想
+        }
+    }
+}
+我在导入dic时，里面的struct我是一个示例，如：
+struct = {
+    "intstruct": {"datatype": int, "range": (0, 999)},
+    "floatstruct": {"datatype": float, "range": (0, 99)},
+    "strstruct": {"datatype": str, "range": string.ascii_lowercase, "len": 5},
+    "tuple": {"datatype":tuple, "struct": nomaltype_tup},
+    "list": {"datatype": list, "struct": nomaltype_lst},
+    "dict": {"datatype": dict, "struct": nomaltype_dict},
+    "set": {"datatype": set, "struct": nomaltype_set}
+}
+我用
+    for i in range(0, args["num"]):
+        lst = list(struct.values())
+        ran = random.choice(lst)
+    生成以上述struct模板中随机一其中任一结构生成相应初始项，并用上了num长度
+
+    下面是不用随机的顺序的：这要您就可以按顺序对struct结构修改（这时的结构仍要按照上述模板结构），因为这时的struct不在是模板而是真正的要生成的结构
+    for keywdf in struct:
+        ran=struct[keywdf]
+
+    对后续的2、3、4作为作业，我只对tuple和list的类型进行操作
