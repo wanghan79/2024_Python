@@ -1,0 +1,96 @@
+import random
+import string
+
+class RandomDataGenerator:
+    def __init__(self, data_struct, count=5):
+        self.data_struct = data_struct
+        self.count = count
+        self.generated = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.generated >= self.count:
+            raise StopIteration
+        data = self.generate_random_data(self.data_struct)
+        self.generated += 1
+        return data
+
+    def generate_random_data(self, data_struct):
+        if 'datatype' not in data_struct:
+            raise ValueError("Missing 'datatype' key in data structure definition.")
+
+        datatype = data_struct['datatype']
+
+        if datatype == 'int':
+            return random.randint(*data_struct['datarange'])
+        elif datatype == 'float':
+            return random.uniform(*data_struct['datarange'])
+        elif datatype == 'str':
+            return ''.join(random.choice(data_struct['datarange']) for _ in range(data_struct['len']))
+        elif datatype == 'list':
+            return [self.generate_random_data(sub_struct) for sub_struct in data_struct['subs']]
+        elif datatype == 'tuple':
+            return tuple(self.generate_random_data(sub_struct) for sub_struct in data_struct['subs'])
+        else:
+            raise ValueError(f"Unsupported datatype: {datatype}")
+
+class DataStatistics:
+    def __init__(self, data_iter):
+        self.data_iter = iter(data_iter)
+        self.int_sum = 0
+        self.float_sum = 0
+        self.int_count = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        for data in self.data_iter:
+            if isinstance(data, int):
+                self.int_sum += data
+                self.int_count += 1
+            elif isinstance(data, float):
+                self.float_sum += data
+        if self.int_count > 0:
+            int_average = self.int_sum / self.int_count
+        else:
+            int_average = 0
+        return self.int_sum, self.float_sum, int_average
+
+# 定义数据结构
+dataStruct = {
+    "datatype": "tuple",
+    "subs": [
+        {
+            "datatype": "list",
+            "subs": [
+                {"datatype": "int", "datarange": (0, 100)},
+                {"datatype": "str", "datarange": string.ascii_uppercase, "len": 5}
+            ]
+        },
+        {
+            "datatype": "tuple",
+            "subs": [
+                {"datatype": "float", "datarange": (0, 5000)},
+                {"datatype": "int", "datarange": (1, 2000)}
+            ]
+        },
+        {"datatype": "str", "datarange": string.ascii_uppercase, "len": 10}
+    ]
+}
+
+# 创建迭代器实例，生成5组随机数据
+random_data_generator = RandomDataGenerator(dataStruct, count=5)
+
+# 使用迭代器生成随机数据
+for random_data in random_data_generator:
+    print(random_data)
+
+# 创建统计数据迭代器实例
+data_statistics = DataStatistics(random_data_generator)
+
+# 使用迭代器生成统计数据
+int_sum, float_sum, int_average = next(data_statistics)
+print(f"Sum of int data: {int_sum}, Sum of float data: {float_sum}, Average of int data: {int_average}")
