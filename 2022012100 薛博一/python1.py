@@ -44,5 +44,4 @@ results=[]
 for i in range(num):
     result=dataSampling(**nested_structure)
     results.append(result)
-    print(result)
 print(f'写入一个列表为：{results}')
