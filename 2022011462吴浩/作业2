@@ -1,1 +1,67 @@
+import random
+import warnings
+import numbers
+import string
 
+
+class DataProcessor:
+    def __init__(self):
+        self.result = []
+        self.data_structure = {
+            "dataType": tuple,
+            "subs": {
+                "sub1": {
+                    "dataType": str,
+                    "datarange": string.ascii_letters,
+                    "len": 5
+                },
+                "sub2": {
+                    "dataType": tuple,
+                    "subs": {
+                        "sub1": {
+                            "dataType": int,
+                            "datarange": (0, 100),
+                        },
+                        "sub2": {
+                            "dataType": list,
+                            "datarange": 5,
+                        },
+                    },
+                },
+            },
+        }
+
+    def data_sampling(self, **kwargs):
+        for key, value in kwargs.items():
+            if key == 'dataType':
+                dataType = value
+                if dataType == int:
+                    datarange = kwargs['datarange']
+                    while True:
+                        num = random.randint(datarange[0], datarange[1])
+                        if num not in self.result:
+                            self.result.append(num)
+                            break
+
+                # Other data types (float, str, bool, list, tuple) can be handled similarly
+
+        return self.result
+
+    def mean_number(self):
+        nums = [x for x in self.result if isinstance(x, numbers.Number) and not isinstance(x, complex)]
+        if len(nums) == 0:
+            return 0
+        else:
+            return sum(nums) / len(nums)
+
+    def len_number(self):
+        nums = [x for x in self.result if isinstance(x, numbers.Number) and not isinstance(x, complex)]
+        return len(nums)
+
+
+times = int(input("请输入要采样的次数："))
+data_processor = DataProcessor()
+for i in range(times):
+    print(data_processor.data_sampling(**data_processor.data_structure))
+print("生成数据的平均值：", data_processor.mean_number())
+print("生成数据的数量：", data_processor.len_number())
