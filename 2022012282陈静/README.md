@@ -395,13 +395,13 @@ print(generate_random_data.counts)
 控制台输出：
 
 ```plaintext
-{'sub1': [{'sub1': 1816.4520032874636, 'sub2': 20}], 'sub2': 'LIJSFQZHJO', 'sub3': {'sub1': 62, 'sub2': 'smnhgr', 'sub3': '9545934090'}}
+{'sub1': [{'sub1': 521.5030608578436, 'sub2': 16}], 'sub2': 'BQQVFLBGE', 'sub3': {'sub1': 86, 'sub2': 'qyqka', 'sub3': '15627461'}}
 {'generate_random_data': 9}
 ```
 
 运行截图：
 
-
+![4e4b2609c14d3f1a5057a906254bb1cd](https://img.dodolalorc.cn/i/2024/06/11/6668521c9edad.png)
 
 ## 作业 4:dataStructure_yield.py
 
