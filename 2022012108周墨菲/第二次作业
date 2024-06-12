@@ -1,0 +1,65 @@
+import random
+import string
+from collections.abc import Iterable
+class DataGenerator:
+    @staticmethod
+    def dataSampling(**kwargs):
+        if kwargs['datatype'] == 'int':
+            it = iter(kwargs['datarange'])
+            return random.randint(next(it), next(it))
+        elif kwargs['datatype'] == 'float':
+            it = iter(kwargs['datarange'])
+            return random.uniform(next(it), next(it))
+        elif kwargs['datatype'] == 'str':
+            if isinstance(kwargs['datarange'], tuple) and len(kwargs['datarange']) == 2:
+                return ''.join(random.choices(string.ascii_letters, k=kwargs['datarange'][1]))
+            else:
+                return ''.join(random.choices(string.ascii_letters, k=kwargs['datarange']))
+        elif kwargs['datatype'] in ('list', 'tuple'):
+            ele = []
+            for _ in range(kwargs.get('num', 1)):
+                sub_elements = {}
+                for sub_key, sub_kwargs in kwargs['subs'].items():
+                    sub_elements[sub_key] = DataGenerator.dataSampling(**sub_kwargs)
+                ele.append(sub_elements)
+            if kwargs['datatype'] == 'list':
+                return ele
+            else:
+                return tuple(ele)
+
+    @staticmethod
+    def structDataSampling(para):
+        result = {}
+        result['num'] = para['num']
+        result['data'] = []
+        for _ in range(para['num']):
+            data = {}
+            for key, value in para['struct']['subs'].items():
+                if isinstance(value, dict):
+                    data[key] = DataGenerator.dataSampling(**value)
+                else:
+                    data[key] = value
+            result['data'].append(data)
+        return result
+
+
+para = {
+    "num": 5,
+    "struct": {
+        "datatype": "list",
+        "subs": {
+            "item": {
+                "datatype": "int",
+                "datarange": (0, 100)
+            },
+            "item2": {
+                    "datatype": "float",
+                    "datarange": (2.5, 8.5)
+            }
+        }
+    }
+}
+
+data_generator=DataGenerator()
+random_data=data_generator.structDataSampling(para)
+print(random_data)
