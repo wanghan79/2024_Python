@@ -44,7 +44,7 @@ def generate_data(template):
 
     return result
 
-# Example template
+
 example = {
     "datatype": tuple,
     "subs": {
