@@ -3,73 +3,79 @@ import string
 
 class RandomGenerator:
     def __init__(self, seed=None):
-        random.seed(seed)
+        if seed is not None:
+            random.seed(seed)
 
-    def generate_random_variable(self, data_types):
-        #根据数据类型生成随机数
-        random_type = random.choice(data_types)
-        if random_type == int:
-            return self.random_integer()
-        elif random_type == float:
-            return self.random_float()
-        elif random_type == str:
-            return self.random_string()
+    def generate_random_variable(self, datatype, datarange):
+        if datatype == 'int':
+            return self.random_integer(datarange)
+        elif datatype == 'float':
+            return self.random_float(datarange)
+        elif datatype == 'str':
+            return self.random_string(datarange)
         else:
             raise ValueError("不支持类型")
 
-    def random_integer(self):
-        #随机整数
-        return random.randint(1, 100)
+    def random_integer(self, datarange):
+        return random.randint(*datarange)
 
-    def random_float(self):
-        #随机浮点数
-        return random.uniform(0.0, 1.0)
+    def random_float(self, datarange):
+        return random.uniform(*datarange)
 
-    def random_string(self):
-        #随机字符串
-        return ''.join(random.choice(string.ascii_letters) for _ in range(5))
+    def random_string(self, datarange):
+        length = datarange[1]
+        return ''.join(random.choice(string.ascii_letters) for _ in range(length))
 
-    def generate_random_lists(self, data_types, num_lists, items_per_list_min, items_per_list_max):
-        # 生成包含随机数据的列表集合
-        random_lists = []
-        for _ in range(num_lists):
-            items_count = random.randint(items_per_list_min, items_per_list_max)
-            random_list = [self.generate_random_variable(data_types) for _ in range(items_count)]
-            random_lists.append(random_list)
-        return random_lists
-
-    def sum_of_list(self, lst):
-        return sum(item for item in lst if isinstance(item, (int, float)))
-
-    def average_of_list(self, lst):
-        values = [item for item in lst if isinstance(item, (int, float))]
-        if values:
-            return sum(values) / len(values)
-        return None
-
-    def process_lists(self, lists):
-        results = []
-        for i, lst in enumerate(lists):
-            sum_result, average_result = self.sum_and_average_of_list(lst)
-            results.append((i, sum_result, average_result))
-            if average_result is not None:
-                print(f"列表 {i+1}: 总和 = {sum_result}, 平均数 = {average_result:.2f}")
-            else:
-                print(f"列表 {i+1} 包含非数值类型，无法计算和与平均")
-        return results
-
+    def generate_data(self, structure):
+        if structure['datatype'] == 'tuple':
+            return tuple(self.generate_data(sub) for sub in structure['subs'].values())
+        elif structure['datatype'] == 'list':
+            return [self.generate_data(sub) for sub in structure['subs'].values()]
+        elif structure['datatype'] == 'set':
+            return {self.generate_data(sub) for sub in structure['subs'].values()}
+        elif structure['datatype'] in ['int', 'float', 'str']:
+            return self.generate_random_variable(structure['datatype'], structure['datarange'])
+        else:
+            raise ValueError("不支持的类型")
 
 if __name__ == "__main__":
     rng = RandomGenerator(seed=42)
 
-    data_types = [int, float, str]
-    num_lists = 5
-    items_per_list_min = 1
-    items_per_list_max = 10
+    sample_structure = {
+        'datatype': 'tuple',
+        'subs': {
+            'sub1': {
+                'datatype': 'set',
+                'subs': {
+                    'sub1': {
+                        'datatype': 'int',
+                        'datarange': (0, 100)
+                    },
+                    'sub2': {
+                        'datatype': 'str',
+                        'datarange': (0, 10)
+                    }
+                }
+            },
+            'sub2': {
+                'datatype': 'list',
+                'subs': {
+                    'sub1': {
+                        'datatype': 'float',
+                        'datarange': (0, 5000)
+                    },
+                    'sub2': {
+                        'datatype': 'int',
+                        'datarange': (1, 200)
+                    }
+                }
+            },
+            'sub3': {
+                'datatype': 'str',
+                'datarange': (0, 5)
+            }
+        }
+    }
 
-    random_lists = rng.generate_random_lists(data_types, num_lists, items_per_list_min, items_per_list_max)
-
-    for i, lst in enumerate(random_lists):
-        print(f"List {i+1}: {lst}")
-
-    results = rng.process_lists(random_lists)
+    generated_data = rng.generate_data(sample_structure)
+    print(generated_data)
