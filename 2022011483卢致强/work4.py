@@ -1,130 +1,120 @@
 import random
 import string
-from functools import wraps
 
-#装饰器，用于计算数据类型和统计信息
-def calculate_statistics(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        #调用原方法生成数据
-        data = func(self, *args, **kwargs)
-        
-        int_sum, int_count, float_sum, float_count = 0, 0, 0.0, 0
+#样本
+sample_structure = {
+    'datatype': 'tuple',
+    'subs': {
+        'sub1': {
+            'datatype': 'set',
+            'subs': {
+                'sub1': {
+                    'datatype': 'int',
+                    'datarange': (0, 100)
+                },
+                'sub2': {
+                    'datatype': 'str',
+                    'datarange': (0, 10) 
+                }
+            }
+        },
+        'sub2': {
+            'datatype': 'list',
+            'subs': {
+                'sub1': {
+                    'datatype': 'float',
+                    'datarange': (0, 5000)
+                },
+                'sub2': {
+                    'datatype': 'int',
+                    'datarange': (1, 200)
+                }
+            }
+        },
+        'sub3': {
+            'datatype': 'str',
+            'datarange': (0, 5) 
+        }
+    }
+}
 
-        def calculate(data):
-            nonlocal int_sum, int_count, float_sum, float_count
-            
-            if isinstance(data, int):
-                int_sum += data
-                int_count += 1
-            elif isinstance(data, float):
-                float_sum += data
-                float_count += 1
-            #如果数据是列表、元组或集合，递归统计其中的元素
-            elif isinstance(data, (list, tuple, set)):
-                for item in data:
-                    calculate(item)
-            #如果数据是字典，递归统计其值
-            elif isinstance(data, dict):
-                for value in data.values():
-                    calculate(value)
+#数据生成
+def generate_data(**kwargs):
+    structure = kwargs
+    if structure['datatype'] == 'tuple':
+        return tuple(generate_data(**sub) for sub in structure['subs'].values())
+    elif structure['datatype'] == 'list':
+        return [generate_data(**sub) for sub in structure['subs'].values()]
+    elif structure['datatype'] == 'set':
+        return set(generate_data(**sub) for sub in structure['subs'].values())
+    elif structure['datatype'] == 'int':
+        return random.randint(*structure['datarange'])
+    elif structure['datatype'] == 'float':
+        return random.uniform(*structure['datarange'])
+    elif structure['datatype'] == 'str':
+        return ''.join(random.choices(string.ascii_uppercase, k=structure['datarange'][1]))
 
-        # 调用递归函数进行统计
-        calculate(data)
+#生成器
+def generate_multiple_data(structure, count):
+    for _ in range(count):
+        yield generate_data(**structure)
 
-        #计算平均值并打印统计结果
-        int_avg = int_sum / int_count if int_count > 0 else 0
-        float_avg = float_sum / float_count if float_count > 0 else 0
-        print(f"整数类型的总和是: {int_sum}, 平均值是: {int_avg:.2f}")
-        print(f"浮点数类型的总和是: {float_sum}, 平均值是: {float_avg:.2f}")
-
+#求和
+def sum_values(data):
+    if isinstance(data, (int, float)):
         return data
+    elif isinstance(data, (list, tuple, set)):
+        return sum(sum_values(item) for item in data)
+    return 0
 
-    return wrapper
+#函数
+def count_values(data):
+    if isinstance(data, (int, float)):
+        return 1
+    elif isinstance(data, (list, tuple, set)):
+        return sum(count_values(item) for item in data)
+    return 0
 
-class RandomGenerator:
-    def __init__(self, seed=None):
-        random.seed(seed)
+#均值
+def average_values(data):
+    total_sum = sum_values(data)
+    total_count = count_values(data)
+    if total_count > 0:
+        return total_sum / total_count
+    else:
+        return 0
 
-    # @calculate_statistics
-    # def generate_random_variable(self, data_types, num_variables):
-    #     # 根据数据类型生成num_variables个随机数
-    #     for _ in range(num_variables):
-    #         random_type = random.choice(data_types)
-    #         if random_type == int:
-    #             yield self.random_integer()
-    #         elif random_type == float:
-    #             yield self.random_float()
-    #         elif random_type == str:
-    #             yield self.random_string()
-    #         else:
-    #             raise ValueError("不支持的类型")
-
-    def random_integer(self):
-        #随机整数
-        return random.randint(1, 100)
-
-    def random_float(self):
-        #随机浮点数
-        return random.uniform(0.0, 1.0)
-
-    def random_string(self):
-        #随机字符串
-        return ''.join(random.choice(string.ascii_letters) for _ in range(5))
-
-    def generate_random_lists(self, data_types, num_lists, items_per_list_min, items_per_list_max):
-        # 生成包含随机数据的列表集合
-        random_lists = []
-        for _ in range(num_lists):
-            items_count = random.randint(items_per_list_min, items_per_list_max)
-            random_list = [self.generate_random_variable(data_types) for _ in range(items_count)]
-            random_lists.append(random_list)
-        return random_lists
-
-    def sum_and_average_of_list(self, lst):
-        #计算列表的和与平均值
-        values = [item for item in lst if isinstance(item, (int, float))]
-        sum_result = sum(values)
-        average_result = sum_result / len(values) if values else None
-        return sum_result, average_result
-
-    def process_lists(self, lists):
-        results = []
-        for i, lst in enumerate(lists):
-            sum_result, average_result = self.sum_and_average_of_list(lst)
-            results.append((i, sum_result, average_result))
-            if average_result is not None:
-                print(f"列表 {i+1}: 总和 = {sum_result}, 平均数 = {average_result:.2f}")
+#装饰器
+def ChooseCal(decPara):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            print("%s is running" % func.__name__)
+            if args[0] == "求和":
+                result = sum_values(args[1])
+                print("总和:", result)
+            elif args[0] == "求均值":
+                result = average_values(args[1])
+                print("均值:", result)
+            elif args[0] == "求和与均值":
+                sum_result = sum_values(args[1])
+                average_result = average_values(args[1])
+                print("总和:", sum_result)
+                print("均值:", average_result)
+            elif args[0] == "无":
+                print("没有进行任何计算")
             else:
-                print(f"列表 {i+1} 包含非数值类型，无法计算和与平均")
-        return results
+                print("无效的计算方式")
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
-    def generate_random_data_generator(self, data_types, total_items):
-        """
-        生成一个可迭代对象，逐个生成随机数据。
-        :param data_types: 随机数据的数据类型列表。
-        :param total_items: 要生成的随机数据总数。
-        :return: 一个生成器，逐个产生随机数据。
-        """
-        for _ in range(total_items):
-            # 根据数据类型生成随机数
-            random_type = random.choice(data_types)
-            if random_type == int:
-                yield self.random_integer()
-            elif random_type == float:
-                yield self.random_float()
-            elif random_type == str:
-                yield self.random_string()
-            else:
-                raise ValueError("不支持的类型")
+@ChooseCal("求和")
+def calculateHK(ways, data):
+    print("完毕")
 
-if __name__ == "__main__":
-    rng = RandomGenerator(seed=42)
-
-    data_types = [int, float, str]
-    total_items = 20  # 假设我们想要生成20个随机数据
-
-    # 使用生成器生成并打印随机数据
-    random_data_generator = rng.generate_random_data_generator(data_types, total_items)
-    for item in random_data_generator:
-        print(item)
+if __name__ == '__main__':
+    data_count = int(input("请输入生成数据的数量:\n"))
+    ways = input("求_____\n")
+    for generated_data in generate_multiple_data(sample_structure, data_count):
+        print(generated_data)
+        calculateHK(ways, generated_data)
