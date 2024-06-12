@@ -6,6 +6,7 @@ class RandomGenerator:
         random.seed(seed)
 
     def generate_random_variable(self, data_types):
+        #根据数据类型生成随机数
         random_type = random.choice(data_types)
         if random_type == int:
             return self.random_integer()
