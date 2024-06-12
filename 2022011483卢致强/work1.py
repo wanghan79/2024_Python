@@ -16,17 +16,21 @@ class RandomGenerator:
             return self.random_string()
         else:
             raise ValueError("不支持类型")
-
+            
     def random_integer(self):
+        #随机整数
         return random.randint(1, 100)
 
     def random_float(self):
+        #随机浮点数
         return random.uniform(0.0, 1.0)
 
     def random_string(self):
+        #随机字符串
         return ''.join(random.choice(string.ascii_letters) for _ in range(5))
 
     def generate_random_lists(self, data_types, num_lists, items_per_list_min, items_per_list_max):
+        # 生成包含随机数据的列表集合
         random_lists = []
         for _ in range(num_lists):
             items_count = random.randint(items_per_list_min, items_per_list_max)
