@@ -73,8 +73,3 @@ if __name__ == "__main__":
         print(f"List {i+1}: {lst}")
 
     results = rng.process_lists(random_lists)
-    for idx, sum_result, average_result in results:
-        if average_result is not None:
-            print(f"List {idx+1}: 和= {sum_result}, 平均数 = {average_result}")
-        else:
-            print(f"List {idx+1} 无法计算和与平均")
