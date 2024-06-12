@@ -92,7 +92,7 @@ def sum_data(data):
     return sum(value for value in iterate(data) if isinstance(value, (int, float)))
 
 
-# Example template
+
 example = {
     "datatype": tuple,
     "subs": {
@@ -144,5 +144,5 @@ def my_function(generated_data, counts, operation_result):
     print("Sum of numbers:", operation_result)
 
 
-# Call the decorated function
+
 my_function()
