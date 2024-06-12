@@ -1,1 +1,86 @@
+import random
+import string
+
+class DataOperation:
+    def __init__(self, *calculate_types):
+        self.types = set(calculate_types)
+        self.total_sum = 0.0
+        self.count = 0.0
+
+    def handle(self, data):
+        if type(data) in self.types:
+            self.total_sum += float(data)
+            self.count += 1
+
+    def average(self):
+        return self.total_sum / self.count if self.count != 0 else 0
+
+    def __str__(self):
+        return f"Total Sum: {self.total_sum}, Average: {self.average()}"
+
+class DataSamplingOperation:
+    def __init__(self, num, **kwargs):
+        self.num = num
+        self.data_struct = kwargs
+
+    def sample_data(self, data_type, data_range):
+        if isinstance(data_range, tuple):
+            return random.randint(data_range[0], data_range[1])
+        elif isinstance(data_range, list):
+            return random.choice(data_range)
+        elif isinstance(data_range, str):
+            return ''.join(random.choice(data_range) for _ in range(self.data_struct['len']))
+        elif data_type == bool:
+            return random.choice([True, False])
+        elif data_type == float:
+            return round(random.uniform(data_range[0], data_range[1]), 2)
+
+    def generate_data(self, struct):
+        if isinstance(struct, dict):
+            for key, value in struct.items():
+                yield key, self.sample_data(value['data_type'], value['data_range'])
+                if 'subs' in value:
+                    yield from self.generate_data(value['subs'])
+        elif isinstance(struct, int) or isinstance(struct, float) or isinstance(struct, str) or isinstance(struct, bool):
+            yield None, struct
+
+    def process_data(self):
+        operations = DataOperation(int, float)
+        for _ in range(self.num):
+            data_gen = self.generate_data(self.data_struct)
+            for _, value in data_gen:
+                operations.handle(value)
+        return operations
+
+if __name__ == '__main__':
+    example = {
+        "data_type": tuple,
+        "subs": {
+            "sub1": {"data_type": list, "subs": {"sub1": {"data_type": int, "data_range": (0, 1000)},
+                                                  "sub2": {"data_type": str, "data_range": string.ascii_uppercase,
+                                                           "len": 10}}},
+            "sub2": {"data_type": tuple, "subs": {"sub1": {"data_type": int, "data_range": (0, 1000)},
+                                                    "sub2": {"data_type": str, "data_range": string.ascii_uppercase,
+                                                             "len": 10}}},
+            "sub3": {"data_type": str, "data_range": string.ascii_lowercase, "len": 5},
+            "sub4": {"data_type": list, "subs": {"sub1": {"data_type": int, "data_range": (0, 100)},
+                                                  "sub2": {"data_type": dict, "subs": {"home_land": {"data_type": str,
+                                                                                                     "data_range":
+                                                                                                         "Wanzhou, Chongqing",
+                                                                                                     "len": 5},
+                                                                                         "live_land": {"data_type": str,
+                                                                                                       "data_range":
+                                                                                                           "Changchun, Jilin",
+                                                                                                       "len": 5},
+                                                                                         "favourite_number": {
+                                                                                             "data_type": int,
+                                                                                             "data_range": (0, 100)},
+                                                                                         "interesting_number": {
+                                                                                             "data_type": float,
+                                                                                             "data_range": (100,
+                                                                                                            200)}}}}}}
+
+    sampler = DataSamplingOperation(100, **example)
+    results = sampler.process_data()
+    print(results)
 
