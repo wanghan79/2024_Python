@@ -1,0 +1,74 @@
+import random
+import string
+
+
+def with_statistics(func):
+    def wrapper(**kwargs):
+        result = func(**kwargs)
+        numeric_results = [(data, total) for data, total in result if isinstance(total, (int, float))]
+        if numeric_results:
+            # 计算所有数值类型数据的总和
+            total_sum = sum(total for _, total in numeric_results)
+            print(f"Total sum of numeric data: {total_sum}")
+        return result
+
+    return wrapper
+
+
+def dataSampling(kwargs):
+    if kwargs['datatype'] == 'int':
+        it = iter(kwargs['datarange'])
+        return random.randint(next(it), next(it))
+    elif kwargs['datatype'] == 'str':
+        if isinstance(kwargs['datarange'], int):
+            return ''.join(random.SystemRandom().choice(string.ascii_uppercase) for _ in range(kwargs['datarange']))
+    elif kwargs['datatype'] == 'float':
+        it = iter(kwargs['datarange'])
+        return random.uniform(next(it), next(it))
+    elif kwargs['datatype'] in ('list', 'tuple'):
+        ele = []
+        for key, sub_kwargs in kwargs['subs'].items():
+            ele.append(dataSampling(sub_kwargs))
+        if kwargs['datatype'] == 'list':
+            return ele
+        else:
+            return tuple(ele)
+    else:
+        raise ValueError("unknown data type")
+
+
+
+@with_statistics
+def apply(**kwargs) -> list:
+    re = []
+    for i in range(kwargs['num']):
+        sampled_data = dataSampling(kwargs['struct'])
+        is_numeric = isinstance(sampled_data, (int, float)) or (
+                isinstance(sampled_data, (list, tuple)) and all(isinstance(item, (int, float)) for item in sampled_data)
+        )
+        if is_numeric:
+            total = sum(sampled_data) if isinstance(sampled_data,
+                                                    (int, float, list, tuple)) else "Not a numeric data type"
+            re.append((sampled_data, total))
+        else:
+            re.append((sampled_data, "Not a numeric data type"))
+    return re
+
+para = {
+    "num": 5,
+    "struct": {
+        "datatype": "list",
+        "subs": {
+            "item": {
+                "datatype": "int",
+                "datarange": (0, 100)
+            },
+            "item2": {
+                    "datatype": "float",
+                    "datarange": (2.5, 8.5)
+            }
+        }
+    }
+}
+result= apply(**para)
+print(result)
