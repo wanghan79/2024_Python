@@ -53,7 +53,7 @@ class DataGenerator:
         return result
 
 
-# Example template
+
 example = {
     "datatype": tuple,
     "subs": {
