@@ -1,1 +1,204 @@
+import random
+import string
+import queue
 
+class Student:
+    def __init__(self, name, age, whereyougo):
+        self.name = name
+        self.age = age
+        self.whereyougo = whereyougo
+
+    def __str__(self):
+        return f'Student name: {self.name}, age: {self.age}, goto: {self.whereyougo}'
+
+    def __repr__(self):
+        return self.__str__()
+
+example = {
+    "data_type": tuple,
+    "subs": {
+        "sub1": {"data_type": list,
+                 "subs": {
+                     "sub1": {
+                         "data_type": int,
+                         "data_range": (0, 100)
+                     },
+                     "sub2": {
+                         "data_type": str,
+                         "data_range": string.ascii_uppercase,
+                         "len": 5
+                     }
+                 }},
+        "sub2": {"data_type": tuple,
+                 "subs": {
+                     "sub1": {
+                         "data_type": int,
+                         "data_range": (0, 100)
+                     },
+                     "sub2": {
+                         "data_type": str,
+                         "data_range": string.ascii_uppercase,
+                         "len": 5
+                     }
+                 }},
+        "sub3": {
+            "data_type": str,
+            "data_range": string.ascii_lowercase,
+            "len": 5
+        },
+        "sub4": {
+            "data_type": list,
+            "subs": {
+                "sub1": {
+                    "data_type": Student,
+                    "subs": {
+                        "name": {
+                            "data_type": str,
+                            "data_range": "QWERTY",
+                            "len": 10
+                        },
+                        "age": {
+                            "data_type": int,
+                            "data_range": (0, 100)
+                        },
+                        "whereyougo": {
+                            "data_type": str,
+                            "data_range": ("Chongqing", "Sichuan", "Hubei", "Jilin", "Heilongjiang", "Shaanxi")
+                        }
+                    }
+                },
+                "sub2": {
+                    "data_type": dict,
+                    "subs": {
+                        "home_land": {
+                            "data_type": str,
+                            "data_range": "Wanzhou, Chongqing",
+                            "len": 5
+                        },
+                        "live_land": {
+                            "data_type": str,
+                            "data_range": "Changchun, Jilin",
+                            "len": 5
+                        },
+                        "favourite_number": {
+                            "data_type": int,
+                            "data_range": (0, 100)
+                        },
+                        "interesting_number": {
+                            "data_type": float,
+                            "data_range": (100, 200)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+class DataSamplingOperation:
+    @staticmethod
+    def data_sampling(**kwargs):
+        typ = kwargs.get('data_type')
+        data_range = kwargs.get('data_range', [])
+        subs = kwargs.get('subs', {})
+
+        if typ == int:
+            return random.randint(*data_range)
+        elif typ == float:
+            return round(random.uniform(*data_range), 2)
+        elif typ == str:
+            length = kwargs.get('len', 1)
+            return ''.join(random.choice(data_range) for _ in range(length))
+        elif typ == bool:
+            return random.choice([True, False])
+        elif typ == list:
+            return [DataSamplingOperation.data_sampling(**sub) for sub in subs.values()]
+        elif typ == tuple:
+            return tuple(DataSamplingOperation.data_sampling(**sub) for sub in subs.values())
+        elif typ == set:
+            return {DataSamplingOperation.data_sampling(**sub) for sub in subs.values()}
+        elif typ == dict:
+            return {k: DataSamplingOperation.data_sampling(**v) for k, v in subs.items()}
+        elif typ == Student:
+            student_data = {k: DataSamplingOperation.data_sampling(**v) for k, v in subs.items()}
+            return Student(**student_data)
+        else:
+            raise ValueError(f"Unsupported data type: {typ}")
+
+    @staticmethod
+    def calculate(data, operation):
+        qu = queue.Queue()
+        qu.put(data)
+        operation.init_func()
+
+        while not qu.empty():
+            current = qu.get()
+            operation.midway_func(current)
+            if isinstance(current, (int, float, str, bool)):
+                continue
+            try:
+                for item in current:
+                    qu.put(item)
+            except TypeError:
+                if isinstance(current, dict):
+                    for value in current.values():
+                        qu.put(value)
+                else:
+                    for value in current.__dict__.values():
+                        qu.put(value)
+
+        return operation.final_func()
+
+class DataOperation:
+    def __init__(self, *calculate_types):
+        if not calculate_types:
+            raise ValueError("At least one type is required")
+        self.type_set = set(calculate_types)
+
+    def init_func(self):
+        pass
+
+    def midway_func(self, item):
+        pass
+
+    def final_func(self):
+        pass
+
+class GetAverage(DataOperation):
+    def __init__(self, *calculate_types):
+        super().__init__(*calculate_types)
+        self.total_sum = 0.0
+        self.count = 0
+
+    def init_func(self):
+        self.total_sum = 0.0
+        self.count = 0
+
+    def midway_func(self, item):
+        if type(item) in self.type_set:
+            self.total_sum += item
+            self.count += 1
+
+    def final_func(self):
+        return self.total_sum / self.count if self.count != 0 else 0
+
+class GetSum(DataOperation):
+    def __init__(self, *calculate_types):
+        super().__init__(*calculate_types)
+        self.total_sum = 0.0
+
+    def init_func(self):
+        self.total_sum = 0.0
+
+    def midway_func(self, item):
+        if type(item) in self.type_set:
+            self.total_sum += item
+
+    def final_func(self):
+        return self.total_sum
+
+if __name__ == '__main__':
+    obj = DataSamplingOperation.data_sampling(**example)
+    print(obj)
+    print("Average of int and float:", DataSamplingOperation.calculate(obj, GetAverage(int, float)))
+    print("Sum of int:", DataSamplingOperation.calculate(obj, GetSum(int)))
