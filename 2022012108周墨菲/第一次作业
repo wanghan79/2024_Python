@@ -1,0 +1,68 @@
+import random
+import string
+def dataSampling(kwargs):
+    if kwargs['datatype'] == 'int':
+        it = iter(kwargs['datarange'])
+        return random.randint(next(it), next(it))
+    elif kwargs['datatype'] == 'str':
+        if isinstance(kwargs['datarange'], int):
+            return ''.join(random.SystemRandom().choice(string.ascii_uppercase) for _ in range(kwargs['datarange']))
+    elif kwargs['datatype'] == 'float':
+        it = iter(kwargs['datarange'])
+        return random.uniform(next(it), next(it))
+    elif kwargs['datatype'] in ('list', 'tuple'):
+        ele = []
+        for key, sub_kwargs in kwargs['subs'].items():
+            ele.append(dataSampling(sub_kwargs))
+        if kwargs['datatype'] == 'list':
+            return ele
+        else:
+            return tuple(ele)
+    else:
+        raise ValueError("unknown data type")
+
+def apply(**kwargs):
+    re = []
+    for i in range(kwargs['num']):
+        sampled_data = dataSampling(kwargs['struct'])
+        def is_numeric_data(data):
+            if isinstance(data, (int, float)):
+                return True
+            elif isinstance(data, (list, tuple)):
+                return all(is_numeric_data(item) for item in data)
+            return False
+
+        if is_numeric_data(sampled_data):
+            total = cal_sta(sampled_data, 'sum')
+            re.append((sampled_data, total))
+        else:
+            re.append((sampled_data, "Not a numeric data type"))
+    return re
+def cal_sta(data, method):
+    if method == 'sum':
+        return sum(data)
+    elif method == 'mean':
+        return sum(data) / len(data) if data else 0
+    else:
+        raise ValueError(f"Unknown method: {method}")
+    if not data:
+        return None
+
+para = {
+    "num": 5,
+    "struct": {
+        "datatype": "list",
+        "subs": {
+            "item": {
+                "datatype": "int",
+                "datarange": (0, 100)
+            },
+            "item2": {
+                    "datatype": "float",
+                    "datarange": (2.5, 8.5)
+            }
+        }
+    }
+}
+random_data= apply(**para)
+print(random_data)
