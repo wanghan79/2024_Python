@@ -1,1 +1,120 @@
+import string
+import random
+from functools import wraps
+
+
+class Student:
+    def __init__(self, sub1, sub2, sub3):
+        self.sub1 = sub1
+        self.sub2 = sub2
+        self.sub3 = sub3
+
+
+operationStruct = {
+    "operations": {
+        "sum_int": {"type": int, "op": "sum"},
+        "average_int": {"type": int, "op": "average"},
+        "sum_float": {"type": float, "op": "sum"},
+        "average_float": {"type": float, "op": "average"}
+    }
+}
+
+structFormat = {
+    "num": 3,
+    "dataStructure": {
+        "datatype": Student,
+        "subs": {
+            "sub1": {"datatype": int, "datarange": (0, 100)},
+            "sub2": {"datatype": float, "datarange": (0, 100)},
+            "sub3": {
+                "datatype": list,
+                "subs": {
+                    "sub1": {"datatype": str, "datarange": string.ascii_lowercase},
+                    "sub2": {"datatype": str, "datarange": string.ascii_uppercase, "strlen": 10}
+                }
+            }
+        }
+    }
+}
+
+
+def handle(data, datatype, op):
+    if isinstance(data, datatype):
+        return data, 1
+
+    if isinstance(data, (list, tuple)):
+        total, count = 0, 0
+        for item in data:
+            item_total, item_count = handle(item, datatype, 0)
+            total += item_total
+            count += item_count
+        if op == "sum":
+            return total
+        if op == "average" and count != 0:
+            return total / count
+        return total, count
+
+    if isinstance(data, dict):
+        total, count = 0, 0
+        for value in data.values():
+            item_total, item_count = handle(value, datatype, 0)
+            total += item_total
+            count += item_count
+        if op == "sum":
+            return total
+        if op == "average" and count != 0:
+            return total / count
+        return total, count
+
+    if hasattr(data, "__dict__"):
+        return handle(data.__dict__, datatype, op)
+
+    return 0, 0
+
+
+def decorator(**op):
+    def deco(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            result = func(*args, **kwargs)
+            if "operations" in op:
+                for operation in op["operations"].values():
+                    print(f"{operation['op']} of {operation['type'].__name__}: {handle(result, operation['type'], operation['op'])}")
+            return result
+        return inner
+    return deco
+
+
+def dataSampling(**kwargs):
+    if "num" in kwargs:
+        return [dataSampling(**kwargs["dataStructure"]) for _ in range(kwargs["num"])]
+
+    datatype = kwargs["datatype"]
+    datarange = kwargs.get("datarange")
+    strlen = kwargs.get("strlen", 5)
+    subs = kwargs.get("subs")
+
+    if datatype is int:
+        return random.randint(*datarange)
+    if datatype is float:
+        return random.uniform(*datarange)
+    if datatype is str:
+        return ''.join(random.choice(datarange) for _ in range(strlen))
+    if datatype in (list, tuple):
+        sub_res = [dataSampling(**sub) for sub in subs.values()]
+        return datatype(sub_res)
+    if issubclass(datatype, Student):
+        return datatype(**{k: dataSampling(**v) for k, v in subs.items()})
+
+    return None
+
+
+@decorator(**operationStruct)
+def funct(**kwargs):
+    return dataSampling(**kwargs)
+
+
+if __name__ == "__main__":
+    result = funct(**structFormat)
+    print(f"Generated Data Structure: {result}")
 
