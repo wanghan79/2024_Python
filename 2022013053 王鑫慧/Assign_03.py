@@ -1,11 +1,10 @@
+
 import random
 import numbers
 import string
 
-# 装饰器函数，用于计数数据类型
-def count_data_types(func):
-    def wrapper(self, *args, **kwargs):
-        # 重置计数
+class DataProcess:
+    def __init__(self):
         self.data_type_counts = {
             'int': 0,
             'float': 0,
@@ -14,21 +13,6 @@ def count_data_types(func):
             'list': 0,
             'tuple': 0
         }
-
-        # 调用原始方法
-        result = func(self, *args, **kwargs)
-
-        # 遍历结果并计数每种数据类型
-        for item in result:
-            self._count_item_type(item[1])
-
-        return result
-    return wrapper
-
-class DataProcess:
-    def __init__(self):
-        self.result = []
-        self.data_type_counts = {}
         self.data_structure = {
             "dataType": tuple,
             "subs": {
@@ -62,30 +46,13 @@ class DataProcess:
                 }
             }
         }
+        self.processed_data = self.data_processing()  # Cache processed data
 
-    def _count_item_type(self, item):
-        if isinstance(item, int):
-            self.data_type_counts['int'] += 1
-        elif isinstance(item, float):
-            self.data_type_counts['float'] += 1
-        elif isinstance(item, str):
-            self.data_type_counts['str'] += 1
-        elif isinstance(item, bool):
-            self.data_type_counts['bool'] += 1
-        elif isinstance(item, list):
-            self.data_type_counts['list'] += 1
-            for sub_item in item:
-                self._count_item_type(sub_item)
-        elif isinstance(item, tuple):
-            self.data_type_counts['tuple'] += 1
-            for sub_item in item:
-                self._count_item_type(sub_item)
-
-    def _generate_data(self, data_structure):
-        data_type = data_structure.get('dataType')
-        datarange = data_structure.get('datarange')
-        len_value = data_structure.get('len', 1)
-        subs = data_structure.get('subs', {})
+    def data_sampling(self, **kwargs):
+        data_type = kwargs.get('dataType', int)
+        datarange = kwargs.get('datarange')
+        len_value = kwargs.get('len', 1)
+        subs = kwargs.get('subs', {})
 
         if data_type == int:
             value = random.randint(*datarange)
@@ -96,51 +63,58 @@ class DataProcess:
         elif data_type == bool:
             value = random.choice([True, False])
         elif data_type == list:
-            value = [self._generate_data(subs['elem']) for _ in range(datarange)]
+            value = [self.data_sampling(**subs['elem'])[1] for _ in range(datarange)]
         elif data_type == tuple:
-            value = tuple(self._generate_data(subs[sub_key]) for sub_key in subs)
+            value = tuple(self.data_sampling(**sub_kwargs)[1] for sub_kwargs in subs.values())
         else:
             raise ValueError(f"Unsupported data type: {data_type}")
 
-        # 在生成数据时计数
-        self._count_item_type(value)
+        self.data_type_counts[data_type.__name__] += 1
 
-        return value
+        return (data_type.__name__, value)
 
-    @count_data_types
-    def data_sampling(self, **kwargs):
-        self.result.clear()  # 清除之前的结果
-        value = self._generate_data(kwargs)
-        self.result.append((type(value).__name__, value))
-        return self.result
+    def data_processing(self):
+        processed_data = []
+        for _ in range(random.randint(1, 5)):
+            result = self.data_sampling(**self.data_structure)
+            processed_data.append(result)
+        return processed_data
 
     def mean_number(self):
-        nums = self._extract_numbers(self.result)
+        nums = self._extract_numbers(self.processed_data)
         return sum(nums) / len(nums) if nums else 0
 
     def len_number(self):
-        nums = self._extract_numbers(self.result)
+        nums = self._extract_numbers(self.processed_data)
         return len(nums)
 
     def sum_numbers(self):
-        nums = self._extract_numbers(self.result)
+        nums = self._extract_numbers(self.processed_data)
         return sum(nums)
 
     def _extract_numbers(self, data):
         nums = []
         for item in data:
-            value = item[1]
-            if isinstance(value, numbers.Number) and not isinstance(value, complex):
-                nums.append(value)
-            elif isinstance(value, (list, tuple)):
-                nums.extend(self._extract_numbers([(None, sub_value) for sub_value in value]))
+            _, value = item
+            nums.extend(self._extract_from_value(value))
         return nums
+
+    def _extract_from_value(self, value):
+        if isinstance(value, numbers.Number):
+            return [value]
+        elif isinstance(value, (list, tuple)):
+            nums = []
+            for elem in value:
+                nums.extend(self._extract_from_value(elem))
+            return nums
+        return []
 
 # Generating data
 data_process_instance = DataProcess()
-times = random.randint(1, 5)
-for _ in range(times):
-    print("每次随机生成的数据结构有", data_process_instance.data_sampling(**data_process_instance.data_structure))
+processed_data = data_process_instance.processed_data
+for item in processed_data:
+    print("每次随机生成的数据结构有", item)
+
+print("数据类型的数字计数（这里的数据类型有一个叠加）:", data_process_instance.data_type_counts)
 print("数据平均数是（包括int和float类型）:", data_process_instance.mean_number())
-print("数据总和是（包括int和float类型）", data_process_instance.sum_numbers())
-print("数据类型的数字计数:", data_process_instance.data_type_counts)
+print("数据总和是（包括int和float类型）:", data_process_instance.sum_numbers())
