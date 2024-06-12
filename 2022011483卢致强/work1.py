@@ -15,7 +15,7 @@ class RandomGenerator:
         elif random_type == str:
             return self.random_string()
         else:
-            raise ValueError("Unsupported data type")
+            raise ValueError("不支持类型")
 
     def random_integer(self):
         return random.randint(1, 100)
