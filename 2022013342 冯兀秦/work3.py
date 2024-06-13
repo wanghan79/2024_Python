@@ -34,7 +34,7 @@ def data_generator(func):
 class DataProcessor:
     @data_generator
     def process_data(self, data):
-        # 这里你可以按照需要处理数据
+        # 这里可以按照需要处理数据
         print(data)
 
     # 示例用法
