@@ -1,36 +1,32 @@
 import random
 
-def generate_data(**kwargs):
+def generate_data_inner(**kwargs):
     result = []
     for k, x in kwargs.items():
+        data = None  # 默认赋值为 None
         if k == 'int':
-            data = [random.randint(x.get('min', 0), x.get('max', 100)) for _ in range(x.get('size', 1))]
+            data = random.randint(x.get('min', 0), x.get('max', 100))
         elif k == 'float':
-            data = [random.uniform(x.get('min', 0.0), x.get('max', 1.0)) for _ in range(x.get('size', 1))]
+            data = random.uniform(x.get('min', 0.0), x.get('max', 1.0))
         elif k == 'str':
             chars = x.get('chars', 'abcdefghijklmnopqrstuvwxyz0123456789')
-            data = [''.join(random.choices(chars, k=x.get('len', 1))) for _ in range(x.get('size', 1))]
+            data = ''.join(random.choices(chars, k=x.get('len', 1)))
         elif k == 'tuple':
-            if 'size' in x:
-                data = (generate_data(**x) for _ in range(x['size']))
-            else:
-                data = generate_data(**x)
+            data = tuple(generate_data_inner(**x) for _ in range(x.get('size', 1)))
         elif k == 'list':
-            if 'size' in x:
-                data = [generate_data(**x) for _ in range(x['size'])]
-            else:
-                data = generate_data(**x)
+            data = [generate_data_inner(**x) for _ in range(x.get('size', 1))]
         elif k == 'set':
-            if 'size' in x:
-                data = {tuple(generate_data(**x)) for _ in range(x['size'])}
-            else:
-                data = {tuple(generate_data(**x))}
+            data = {tuple(generate_data_inner(**x)) for _ in range(x.get('size', 1))}
         result.append(data)
-        yield data
+    return result
+
+def generate_data(**kwargs):
+    for _ in range(kwargs.get('num', 1)):
+        yield generate_data_inner(**kwargs)
 
 if __name__ == '__main__':
-    # 测试生成器函数
     for sample in generate_data(
+        num=5,
         int={'min': 10, 'max': 20, 'size': 7},
         tuple={
             'list': {'int': {'min': 5, 'max': 15, 'size': 3}},
