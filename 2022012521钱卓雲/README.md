@@ -134,8 +134,7 @@ my_dict = {'tuple': {'int': {'datarange': [1, 10]},
 
 源代码：
 
-```python
-from functools import wraps
+```from functools import wraps
 import random
 import time
 
@@ -143,14 +142,28 @@ class RandomDataGenerator:
     def __init__(self):
         pass
 
-    def use_logging(func):
+    def use_Calculate(func):
+        print('-------------------------------------------------')
+        start_time = time.time()  # 获取开始时间
+        print(f"Logging: The function {func.__name__} is running")
+        print(f"Time: {time.strftime('%X', time.localtime())}")
         @wraps(func)
         def wrapper(self, *args, **kwargs):
-            print('-------------------------------------------------')
-            start_time = time.time()  # 获取开始时间
-            print(f"Logging: The function {func.__name__} is running")
-            print(f"Time: {time.strftime('%X', time.localtime())}")
-            result = func(self, *args, **kwargs)
+
+            result = None
+            #result = func(self, *args, **kwargs)
+            data_ = self.get_random(**kwargs)
+            print(data_)
+            number_list = self.get_element(data_, None)
+            cont_number = len(number_list)
+            sum = 0
+            average = 0
+            for num in number_list:
+                sum += num
+            if cont_number != 0:
+                average = sum / cont_number
+            print(f"Sum: {sum}, Average: {average}")
+
             end_time = time.time()  # 获取结束时间
             print(f"Logging: The function {func.__name__} has ended")
             print(f"Time: {time.strftime('%X', time.localtime())}")
@@ -211,8 +224,7 @@ class RandomDataGenerator:
                 result.append("********")
         return result
 
-    @use_logging
-    @calculate_sum_and_average
+    @use_Calculate
     def get_random_(self, **kwargs):
         print(self.get_random(**kwargs))
 
