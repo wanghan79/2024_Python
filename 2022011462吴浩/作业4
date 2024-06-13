@@ -2,7 +2,6 @@ import random
 import string
 from functools import wraps
 
-
 def generate_structure(**kwargs):
     if 'datatype' not in kwargs:
         raise ValueError("数据结构定义中缺少'datatype'字段")
@@ -48,7 +47,7 @@ def datastructure_calculator(calc_type):
             all_float_sum = 0.0
             all_float_count = 0
 
-            random_datas = func(n, calc_type, **kwargs)
+            random_datas = Randomdata_diedai(n, **kwargs)
 
             for data in random_datas:
                 int_sum, int_count, float_sum, float_count = collect_numbers(data)
@@ -77,11 +76,13 @@ def datastructure_calculator(calc_type):
     return decorator
 
 
-@datastructure_calculator('both')
-def main(n, calc_type, **kwargs):
-    random_datas = [generate_structure(**kwargs) for _ in range(n)]
-    return random_datas
+def Randomdata_diedai(count, **kwargs):
+    for _ in range(count):
+        yield generate_structure(**kwargs)
 
+@datastructure_calculator('both')
+def main(n, calc_type, data_generator, **kwargs):
+    return data_generator(n, **kwargs)
 
 if __name__ == "__main__":
     n = int(input("请输入要生成的随机数据结构的数量："))
@@ -121,4 +122,4 @@ if __name__ == "__main__":
         }
     }
     calc_type = input("请输入计算类型（sum, average, both, no）：")
-    random_datas = main(n, calc_type, **data_structure)
+    main(n, calc_type, data_generator=Randomdata_diedai, **data_structure)
