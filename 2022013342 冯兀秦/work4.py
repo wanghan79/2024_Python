@@ -21,9 +21,6 @@ def analyze_data(func):
     return wrapper
 
 
-# 使用@analyze_data会导致语法错误，因为analyze_data不是一个装饰器
-# 但我们可以像下面这样使用它
-
 def main():
     # 用户输入需要生成的数据组数
     num_groups = int(input("请输入需要生成的数据组数: "))
