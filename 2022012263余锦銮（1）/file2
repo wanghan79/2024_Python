@@ -1,0 +1,87 @@
+import random
+import string
+
+class RandomDataGenerator:
+    def __init__(self, schema):
+        self.schema = schema
+
+    def generate(self, schema=None):
+        if schema is None:
+            schema = self.schema
+        dtype = schema['datatype']
+        return self._dispatch(dtype, schema)
+
+    def _dispatch(self, dtype, schema):
+        dispatch_map = {
+            'tuple': self._generate_tuple,
+            'list': self._generate_list,
+            'int': self._generate_int,
+            'float': self._generate_float,
+            'str': self._generate_str
+        }
+        return dispatch_map[dtype](schema)
+
+    def _generate_tuple(self, schema):
+        return tuple(self.generate(sub_schema) for sub_schema in schema['subs'].values())
+
+    def _generate_list(self, schema):
+        return [self.generate(sub_schema) for sub_schema in schema['subs'].values()]
+
+    def _generate_int(self, schema):
+        return random.randint(*schema['datarange'])
+
+    def _generate_float(self, schema):
+        return random.uniform(*schema['datarange'])
+
+    def _generate_str(self, schema):
+        length = random.randint(*schema['datarange'])
+        return ''.join(random.choices(string.ascii_uppercase, k=length))
+
+    def generate_multiple_sets(self, n_sets):
+        for _ in range(n_sets):
+            result = self.generate()
+            print(result)
+
+# 用户定义的数据结构模板
+data_schema = {
+    'datatype': 'tuple',
+    'subs': {
+        'section1': {
+            'datatype': 'list',
+            'subs': {
+                'element1': {
+                    'datatype': 'int',
+                    'datarange': (0, 100)
+                },
+                'element2': {
+                    'datatype': 'str',
+                    'datarange': (0, 10)  # 假设第二个值是字符串的长度
+                }
+            }
+        },
+        'section2': {
+            'datatype': 'list',
+            'subs': {
+                'element1': {
+                    'datatype': 'float',
+                    'datarange': (0, 5000)
+                },
+                'element2': {
+                    'datatype': 'int',
+                    'datarange': (1, 200)
+                }
+            }
+        },
+        'section3': {
+            'datatype': 'str',
+            'datarange': (0, 5)  # 同样，假设第二个值是字符串的长度
+        }
+    }
+}
+
+# 创建随机数据生成器实例
+random_data_generator = RandomDataGenerator(data_schema)
+
+# 生成多组随机数据
+number_of_sets = 10
+random_data_generator.generate_multiple_sets(number_of_sets)
