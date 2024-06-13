@@ -18,9 +18,8 @@ def dataSampling(**kwargs):
             elements.append(dataSampling(**sub_kwargs))
         if kwargs['datatype'] == 'list':
             return elements
-        else:  # tuple
+        else:  
             return tuple(elements)
-
 # 假定的嵌套模型
 nested_structure = {
             "datatype": "tuple",
@@ -39,9 +38,8 @@ nested_structure = {
                         }
                     }
                 }
+
 num=int(input("请输入要生成的数据组数："))
-results=[]
-for i in range(num):
-    result=dataSampling(**nested_structure)
-    results.append(result)
+results = [dataSampling(**nested_structure) for _ in range(num)]
+
 print(f'写入一个列表为：{results}')
