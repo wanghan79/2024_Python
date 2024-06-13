@@ -1,0 +1,112 @@
+import random
+import string
+from collections import defaultdict
+
+# 装饰器，用于计数数据类型
+def type_counter(func):
+    def wrapper(self, schema, *args, **kwargs):
+        result = func(self, schema, *args, **kwargs)
+        dtype = schema['datatype']
+        if dtype in ('tuple', 'list'):
+            for element in result:
+                self._recursive_type_count(element)
+        else:
+            self.type_counts[dtype] += 1
+        return result
+    return wrapper
+
+class DataGenerator:
+    def __init__(self, schema):
+        self.schema = schema
+        self.type_counts = defaultdict(int)
+
+    @type_counter
+    def generate_data(self, schema):
+        dtype = schema['datatype']
+        return self._generate_by_type(dtype, schema)
+
+    def _generate_by_type(self, dtype, schema):
+        generation_methods = {
+            'tuple': self._generate_tuple,
+            'list': self._generate_list,
+            'int': self._generate_int,
+            'float': self._generate_float,
+            'str': self._generate_str
+        }
+        return generation_methods[dtype](schema)
+
+    def _generate_tuple(self, schema):
+        return tuple(self.generate_data(sub_schema) for sub_schema in schema['subs'].values())
+
+    def _generate_list(self, schema):
+        return [self.generate_data(sub_schema) for sub_schema in schema['subs'].values()]
+
+    def _generate_int(self, schema):
+        return random.randint(*schema['datarange'])
+
+    def _generate_float(self, schema):
+        return random.uniform(*schema['datarange'])
+
+    def _generate_str(self, schema):
+        length = random.randint(*schema['datarange'])
+        return ''.join(random.choices(string.ascii_uppercase, k=length))
+
+    def _recursive_type_count(self, data):
+        if isinstance(data, (tuple, list)):
+            for item in data:
+                self._recursive_type_count(item)
+        else:
+            data_type = type(data).__name__.lower()
+            self.type_counts[data_type] += 1
+
+    def generate_multiple_sets(self, count):
+        return [self.generate_data(self.schema) for _ in range(count)]
+
+# 用户定义的数据结构模板
+schema_template = {
+    'datatype': 'tuple',
+    'subs': {
+        'section1': {
+            'datatype': 'list',
+            'subs': {
+                'item1': {
+                    'datatype': 'int',
+                    'datarange': (0, 100)
+                },
+                'item2': {
+                    'datatype': 'str',
+                    'datarange': (1, 10)  # 字符串长度范围修正为正整数
+                }
+            }
+        },
+        'section2': {
+            'datatype': 'list',
+            'subs': {
+                'item1': {
+                    'datatype': 'float',
+                    'datarange': (0, 5000)
+                },
+                'item2': {
+                    'datatype': 'int',
+                    'datarange': (1, 200)
+                }
+            }
+        },
+        'section3': {
+            'datatype': 'str',
+            'datarange': (1, 5)  # 字符串长度范围修正为正整数
+        }
+    }
+}
+
+# 创建一个数据生成器实例
+generator = DataGenerator(schema_template)
+
+# 生成多组随机数据
+num_sets = 10
+generated_data_sets = generator.generate_multiple_sets(num_sets)
+
+# 打印生成的数据和计数结果
+for data_set in generated_data_sets:
+    print(data_set)
+print("Data type counts:", dict(generator.type_counts))
