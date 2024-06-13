@@ -43,8 +43,8 @@ def random_data():
         yield dataSampling(**data_structure)
 
 num=int(input("请输入要生成的数据组数："))
-random_data_gen = random_data()
-samples = [next(random_data_gen) for _ in range(num)]
+random_data = random_data()
+samples = [next(random_data) for _ in range(num)]
 print(samples)
 # for sample in samples:
 #     print(sample)
