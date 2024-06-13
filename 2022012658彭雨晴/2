@@ -1,1 +1,43 @@
+import random
+import string
 
+class DataGenerator:
+    def __init__(self):
+        pass
+
+    def dataSampling(self, structure, num):
+        result = []
+        for _ in range(num):
+            if structure['type'] == 'tuple':
+                result.append(self.generate_tuple(structure['subs']))
+        return result
+
+    def generate_tuple(self, sub_structure):
+        result = {}
+        for key, value in sub_structure.items():
+            result[key] = self.generate_data(value)
+        return tuple(result.values())
+
+    def generate_data(self, structure):
+        if structure['type'] == 'int':
+            return random.randint(0, 100)
+        elif structure['type'] == 'float':
+            return random.uniform(0, 100)
+        elif structure['type'] == 'str':
+            return ''.join(random.choice(string.ascii_letters) for _ in range(10))
+
+# Usage example:
+structure = {
+    "type": "tuple",
+    "subs": {
+        "sub1": {"type": "int"},
+        "sub2": {"type": "float"},
+        "sub3": {"type": "str"}
+    }
+}
+
+num_tuples = 5
+generator = DataGenerator()
+random_tuples = generator.dataSampling(structure, num_tuples)
+for t in random_tuples:
+    print(t)
