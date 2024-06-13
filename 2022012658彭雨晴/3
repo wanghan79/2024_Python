@@ -2,8 +2,6 @@ import random
 import string
 import statistics
 
-
-# 修饰器，用于计算int和float类型的平均数和方差
 def calculate_stats(func):
     def wrapper(*args, **kwargs):
         int_data = []
@@ -16,22 +14,22 @@ def calculate_stats(func):
                 elif isinstance(item, float):
                     float_data.append(item)
 
-        # 打印int类型的平均数和方差
+        # 计算和打印int类型的平均数、方差和和
         if int_data:
             mean_int = statistics.mean(int_data)
             variance_int = statistics.variance(int_data)
-            print(f"Integers: Average = {mean_int}, Variance = {variance_int}")
+            sum_int = sum(int_data)
+            print(f"Integers: Average = {mean_int}, Variance = {variance_int}, Sum = {sum_int}")
 
-        # 打印float类型的平均数和方差
+        # 计算和打印float类型的平均数、方差和和
         if float_data:
             mean_float = statistics.mean(float_data)
             variance_float = statistics.variance(float_data)
-            print(f"Floats: Average = {mean_float}, Variance = {variance_float}")
+            sum_float = sum(float_data)
+            print(f"Floats: Average = {mean_float}, Variance = {variance_float}, Sum = {sum_float}")
 
         return result
-
     return wrapper
-
 
 @calculate_stats
 def dataSampling(structure, num):
@@ -41,13 +39,11 @@ def dataSampling(structure, num):
             result.append(generate_tuple(structure['subs']))
     return result
 
-
 def generate_tuple(sub_structure):
     result = {}
     for key, value in sub_structure.items():
         result[key] = generate_data(value)
     return tuple(result.values())
-
 
 def generate_data(structure):
     if structure['type'] == 'int':
@@ -57,8 +53,6 @@ def generate_data(structure):
     elif structure['type'] == 'str':
         return ''.join(random.choice(string.ascii_letters) for _ in range(10))
 
-
-# 定义结构和生成随机元组的数量
 structure = {
     "type": "tuple",
     "subs": {
@@ -69,7 +63,6 @@ structure = {
 }
 num_tuples = 5
 
-# 调用dataSampling函数，并使用@calculate_stats修饰器
 random_tuples = dataSampling(structure, num_tuples)
 for t in random_tuples:
     print(t)
