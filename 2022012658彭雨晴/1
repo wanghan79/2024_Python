@@ -1,1 +1,37 @@
+import random
+import string
 
+def dataSampling(structure, num):
+    result = []
+    for _ in range(num):
+        if structure['type'] == 'tuple':
+            result.append(generate_tuple(structure['subs']))
+    return result
+
+def generate_tuple(sub_structure):
+    result = {}
+    for key, value in sub_structure.items():
+        result[key] = generate_data(value)
+    return tuple(result.values())
+
+def generate_data(structure):
+    if structure['type'] == 'int':
+        return random.randint(0, 100)
+    elif structure['type'] == 'float':
+        return random.uniform(0, 100)
+    elif structure['type'] == 'str':
+        return ''.join(random.choice(string.ascii_letters) for _ in range(10))
+
+structure = {
+    "type": "tuple",
+    "subs": {
+        "sub1": {"type": "int"},
+        "sub2": {"type": "float"},
+        "sub3": {"type": "str"}
+    }
+}
+
+num_tuples = 5
+random_tuples = dataSampling(structure, num_tuples)
+for t in random_tuples:
+    print(t)
