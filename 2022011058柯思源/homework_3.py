@@ -33,16 +33,16 @@ def Sat(operation, datatype):
             count = 0
             for item in results:
                 total, count = traverse(item, total, count)
+            print(results)
             if operation == 'sum':
-                print(results)
                 print("sum=")
                 return total
             elif operation == 'mean':
-                print(results)
                 print("average=")
                 return total / max(count, 1)
+            elif operation == 'none':
+                pass
             return None
-
         return wrapper
     return decorator
 
