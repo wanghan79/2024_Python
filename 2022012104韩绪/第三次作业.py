@@ -1,48 +1,31 @@
 import random
-import string
+from example_template import example_template
 
-def decorator(aClass):
-    class DecoratorClass():
-        def __init__(self):
-            self.aClass = aClass()
+def decorator(aclass):
+    """增加了在生成随机数据之后, print出来的功能"""
+    class Data_sampler():
+        def __init__(self, example_template):
+            self.aclass = aclass(example_template)
 
-        def dataExtraction(self, example, num):
-            extracted_data = self.aClass.dataExtraction(example, num)
-            formatted_data = "{" + ", ".join([str(data) for data in extracted_data]) + "}"
-            print(formatted_data)
+        def generate_data(self, template):
+            return self.aclass.generate_data(template)
+        
+        def generate_item(self, value):
+            return self.aclass.generate_item(value)
+        
+        def dataExtraction(self, num):
+            data = self.aclass.dataExtraction(num)
+            for d in data:
+                print(d)
+            return data
 
-    return DecoratorClass
+    return Data_sampler
 
 @decorator
-class DataProcessor:
-    def __init__(self):
-        self.data_range = {
-            'name': {'John', 'Smith', 'Bob'},
-            'age': {'20', '18', '22'},
-            'id': {'1', '2', '4'}
-        }
-
-        self.example_template = {
-            "datatype": tuple,
-            "subs": {
-                "name": {
-                    "datatype": str,
-                    "datarange": self.data_range['name'],
-                    "len": 1  # specifying length 1 for single random choice
-                },
-                "age": {
-                    "datatype": str,
-                    "datarange": self.data_range['age'],
-                    "len": 1
-                },
-                "id": {
-                    "datatype": str,
-                    "datarange": self.data_range['id'],
-                    "len": 1
-                }
-            }
-        }
-
+class Data_sampler():
+    def __init__(self, example_template):
+        self.example_template = example_template
+    
     def generate_data(self, template):
         datatype = template.get("datatype")
         subs = template.get("subs", {})
@@ -70,26 +53,23 @@ class DataProcessor:
     def generate_item(self, value):
         if "datatype" in value and "datarange" in value:
             if value["datatype"] == int:
-                return random.randint(*value["datarange"])
+                return random.randint(value["datarange"][0], value["datarange"][1])
             elif value["datatype"] == float:
-                return random.uniform(*value["datarange"])
-            elif value["datatype"] == bool:
-                return random.choice([True, False])
+                return random.uniform(value["datarange"][0], value["datarange"][1])
             elif value["datatype"] == str:
-                datarange_list = list(value["datarange"])  # Convert set to list
-                return ''.join(random.choices(datarange_list, k=value.get("len", 1)))
+                return random.SystemRandom().choice(value['datarange'])
         return self.generate_data(value)
 
-    def dataExtraction(self, example, num):
-        result = set()
+
+    def dataExtraction(self, num):
+        result = []
         for _ in range(num):
             extracted_data = self.generate_data(self.example_template)
-            result.add(extracted_data)
+            result.append(extracted_data)
         return result
 
 if __name__ == '__main__':
-    processor = DataProcessor()
 
-    example = ('name', 'age', 'id')  # Define example here
-    processor.dataExtraction(example, num=3)
-
+    data_sampler = Data_sampler(example_template)
+    print("Generated random data:")
+    extracted_data = data_sampler.dataExtraction(num=3)
