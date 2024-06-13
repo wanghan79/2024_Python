@@ -1,0 +1,18 @@
+import random
+import string
+
+def generate_random_dict(depth):
+    # 如果深度为0，返回一个随机值
+    if depth == 0:
+        return random.randint(1, 100)
+    # 创建一个空字典
+    d = {}
+    # 循环的次数等于字典的深度
+    for _ in range(depth):
+        # 生成一个随机的键和值
+        key = &apos;&apos;.join(random.choices(string.ascii_letters + string.digits, k=5))
+        value = generate_random_dict(depth - 1)
+        # 将键和值添加到字典中
+        d[key] = value
+    # 返回创建的字典
+    return d

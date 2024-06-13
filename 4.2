@@ -1,0 +1,9 @@
+def random_dict_sum(num):
+    total_sum = 0
+    for d in random_dict_generator(num):
+        for value in d.values():
+            if isinstance(value, int):
+                total_sum += value
+    return total_sum
+
+print(random_dict_sum(5))

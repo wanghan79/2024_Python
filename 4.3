@@ -1,0 +1,26 @@
+class DataSampling:
+    def __init__(self, num):
+        self.data = list(random_dict_generator(num))
+
+    def sum_int_values(self):
+        total_sum = 0
+        for d in self.data:
+            for value in d.values():
+                if isinstance(value, int):
+                    total_sum += value
+        return total_sum
+
+    def average_int_values(self):
+        total_sum = self.sum_int_values()
+        count = sum(isinstance(value, int) for d in self.data for value in d.values())
+        return total_sum / count if count > 0 else 0
+
+    def generator(self):
+        for d in self.data:
+            yield d
+
+data_sampling = DataSampling(5)
+for d in data_sampling.generator():
+    print(d)
+print(data_sampling.sum_int_values())
+print(data_sampling.average_int_val

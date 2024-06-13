@@ -1,0 +1,17 @@
+def data_operations_decorator(func):
+    def wrapper(*args, **kwargs):
+        data = func(*args, **kwargs)
+        sum_data = sum(data)
+        average_data = sum_data / len(data)
+        print(f"数据之和： {sum_data}")
+        print(f"数据平均值： {average_data}")
+        return data
+
+    return wrapper
+
+@data_operations_decorator
+def dataSampling():
+    data = [1, 2, 3, 4, 5]
+    return data
+
+result = dataSampling()

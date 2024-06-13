@@ -1,0 +1,19 @@
+class DataGenerator:
+    def __init__(self):
+        self.data = []
+
+    def generate_data(self, n):
+        # 生成n个随机数
+        import random
+        for _ in range(n):
+            self.data.append(random.randint(1, 100))
+
+    def sum_integers(self):
+        # 对生成的数据中的整数求和
+        return sum([x for x in self.data if isinstance(x, int)])
+
+# 使用示例
+generator = DataGenerator()
+generator.generate_data(10)
+print("生成的数据：", generator.data)
+print("整数求和：", generator.sum_integers())

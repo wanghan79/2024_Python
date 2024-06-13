@@ -1,0 +1,10 @@
+mport random
+
+def random_dict_generator(num):
+    for _ in range(num):
+        key = random.randint(1, 100)
+        value = random.randint(1, 100)
+        yield {key: value}
+
+for d in random_dict_generator(5):
+    print(d)
