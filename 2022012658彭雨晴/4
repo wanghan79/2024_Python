@@ -1,0 +1,69 @@
+import random
+import string
+import statistics
+
+# 生成数据的生成器
+def dataSampling(structure, num):
+    for _ in range(num):
+        if structure['type'] == 'tuple':
+            yield generate_tuple(structure['subs'])
+
+# 根据类型生成数据
+def generate_tuple(sub_structure):
+    result = {}
+    for key, value in sub_structure.items():
+        result[key] = generate_data(value)
+    return tuple(result.values())
+
+def generate_data(structure):
+    if structure['type'] == 'int':
+        return random.randint(0, 100)
+    elif structure['type'] == 'float':
+        return random.uniform(0, 100)
+    elif structure['type'] == 'str':
+        return ''.join(random.choice(string.ascii_letters) for _ in range(10))
+
+# 计算统计数据并打印每组数据
+def calculate_stats(sampling_generator, num):
+    int_data = []
+    float_data = []
+    for i, sample in enumerate(sampling_generator):
+        print(f"Sample {i+1}: {sample}")
+        for item in sample:
+            if isinstance(item, int):
+                int_data.append(item)
+            elif isinstance(item, float):
+                float_data.append(item)
+    
+    # 计算并打印int类型的统计数据
+    if int_data:
+        mean_int = statistics.mean(int_data)
+        variance_int = statistics.variance(int_data)
+        sum_int = sum(int_data)
+        print(f"Integers: Average = {mean_int}, Variance = {variance_int}, Sum = {sum_int}")
+    
+    # 计算并打印float类型的统计数据
+    if float_data:
+        mean_float = statistics.mean(float_data)
+        variance_float = statistics.variance(float_data)
+        sum_float = sum(float_data)
+        print(f"Floats: Average = {mean_float}, Variance = {variance_float}, Sum = {sum_float}")
+
+# 定义结构
+structure = {
+    "type": "tuple",
+    "subs": {
+        "sub1": {"type": "int"},
+        "sub2": {"type": "float"},
+        "sub3": {"type": "str"}
+    }
+}
+
+# 定义生成随机元组的数量
+num_tuples = 5
+
+# 创建生成器
+sampling_gen = dataSampling(structure, num_tuples)
+
+# 调用函数，打印每组数据和统计信息
+calculate_stats(sampling_gen, num_tuples)
