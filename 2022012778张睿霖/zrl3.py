@@ -1,52 +1,57 @@
 import random
-import time
 
 def generate_data(**kwargs):
     result = []
-    for k, x in kwargs.items():
-        if k == 'int':
-            data = [random.randint(x.get('min', 0), x.get('max', 100)) for _ in range(x.get('size', 1))]
-        elif k == 'float':
-            data = [random.uniform(x.get('min', 0.0), x.get('max', 1.0)) for _ in range(x.get('size', 1))]
-        elif k == 'str':
-            chars = x.get('chars', 'abcdefghijklmnopqrstuvwxyz0123456789')
-            data = [''.join(random.choices(chars, k=x.get('len', 1))) for _ in range(x.get('size', 1))]
-        elif k == 'tuple':
-            if 'size' in x:
-                data = tuple(generate_data(**x) for _ in range(x['size']))
+    for key, value in kwargs.items():
+        if key == 'int':
+            for _ in range(value.get('size', 1)):
+                result.append(random.randint(value.get('min', 0), value.get('max', 100)))
+        elif key == 'float':
+            for _ in range(value.get('size', 1)):
+                result.append(random.uniform(value.get('min', 0.0), value.get('max', 1.0)))
+        elif key == 'str':
+            chars = value.get('chars', 'abcdefghijklmnopqrstuvwxyz0123456789')
+            for _ in range(value.get('size', 1)):
+                result.append(''.join(random.choices(chars, k=value.get('len', 1))))
+        elif key in ('tuple', 'list', 'set'):
+            gen_func = generate_data(**value) if 'size' in value else [generate_data(**value)]
+            if key == 'set':
+                for _ in range(value.get('size', 1)):
+                    result.append(tuple(gen_func))
             else:
-                data = tuple(generate_data(**x))
-        elif k == 'list':
-            if 'size' in x:
-                data = [generate_data(**x) for _ in range(x['size'])]
-            else:
-                data = [generate_data(**x)]
-        elif k == 'set':
-            if 'size' in x:
-                data = {tuple(generate_data(**x)) for _ in range(x['size'])}
-            else:
-                data = {tuple(generate_data(**x))}
-        result.append(data)
+                result.extend(gen_func)
     return result
+def summarize_data(data):
+    int_sum, int_count, float_sum, float_count = 0, 0, 0, 0
+    for item in data:
+        if isinstance(item, int):
+            int_sum += item
+            int_count += 1
+        elif isinstance(item, float):
+            float_sum += item
+            float_count += 1
+    int_avg = int_sum / max(int_count, 1)
+    float_avg = float_sum / max(float_count, 1)
+    return int_sum, float_sum, int_avg, float_avg
 
-# 装饰器定义
-def my_decorator(func):
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        end_time = time.time()
-        return result
 
+def data_summary_decorator(func):
+    def wrapper(**kwargs):
+        data = func(**kwargs)
+        int_sum, float_sum, int_avg, float_avg = summarize_data(data)
+        print("Sum of Integers:", int_sum)
+        print("Sum of Floats:", float_sum)
+        print("Average of Integers:", int_avg)
+        print("Average of Floats:", float_avg)
+        return data, int_sum, float_sum, int_avg, float_avg
     return wrapper
 
-# 使用装饰器
-@my_decorator
+@data_summary_decorator
 def generate_data_decorated(**kwargs):
     return generate_data(**kwargs)
 
 if __name__ == '__main__':
-    # 使用装饰后的函数
-    print(generate_data_decorated(
+    generate_data_decorated(
         int={'min': 10, 'max': 20, 'size': 7},
         tuple={
             'list': {'int': {'min': 5, 'max': 15, 'size': 3}},
@@ -58,4 +63,4 @@ if __name__ == '__main__':
                 'int': {'min': 30, 'max': 50, 'size': 3}
             }
         }
-    ))
+    )

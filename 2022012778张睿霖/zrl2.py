@@ -2,32 +2,43 @@ import random
 
 class DataGenerator:
     def generate(self, **kwargs):
-        data = self._generate(**kwargs)
-        int_sum, int_count, float_sum, float_count = self._summarize(data)
+        data = self._generate_data(**kwargs)
+        int_sum, int_count, float_sum, float_count = self._summarize_data(data)
         int_avg = int_sum / max(int_count, 1)
         float_avg = float_sum / max(float_count, 1)
         return data, int_sum, float_sum, int_avg, float_avg
 
-    def _generate(self, **kwargs):
+    def _generate_data(self, **kwargs):
         result = []
         for key, value in kwargs.items():
             if key == 'int':
-                result.extend(random.randint(value.get('min', 0), value.get('max', 100)) for _ in range(value.get('size', 1)))
+                for _ in range(value.get('size', 1)):
+                    result.append(random.randint(value.get('min', 0), value.get('max', 100)))
             elif key == 'float':
-                result.extend(random.uniform(value.get('min', 0.0), value.get('max', 1.0)) for _ in range(value.get('size', 1)))
+                for _ in range(value.get('size', 1)):
+                    result.append(random.uniform(value.get('min', 0.0), value.get('max', 1.0)))
             elif key == 'str':
                 chars = value.get('chars', 'abcdefghijklmnopqrstuvwxyz0123456789')
-                result.extend(''.join(random.choices(chars, k=value.get('len', 1))) for _ in range(value.get('size', 1)))
+                for _ in range(value.get('size', 1)):
+                    result.append(''.join(random.choices(chars, k=value.get('len', 1))))
             elif key in ('tuple', 'list', 'set'):
-                gen_func = (self._generate(**value) if 'size' in value else [self._generate(**value)])
-                result.extend((tuple(gen_func) if key == 'tuple' else list(gen_func)) if key == 'set' else gen_func)
+                gen_func = self._generate_data(**value) if 'size' in value else [self._generate_data(**value)]
+                if key == 'set':
+                    for _ in range(value.get('size', 1)):
+                        result.append(tuple(gen_func))
+                else:
+                    result.extend(gen_func)
         return result
 
-    def _summarize(self, data):
-        int_sum = sum(item for item in data if isinstance(item, int))
-        int_count = sum(1 for item in data if isinstance(item, int))
-        float_sum = sum(item for item in data if isinstance(item, float))
-        float_count = sum(1 for item in data if isinstance(item, float))
+    def _summarize_data(self, data):
+        int_sum, int_count, float_sum, float_count = 0, 0, 0, 0
+        for item in data:
+            if isinstance(item, int):
+                int_sum += item
+                int_count += 1
+            elif isinstance(item, float):
+                float_sum += item
+                float_count += 1
         return int_sum, int_count, float_sum, float_count
 
 if __name__ == '__main__':

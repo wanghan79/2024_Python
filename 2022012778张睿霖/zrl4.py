@@ -1,28 +1,40 @@
 import random
 
 def generate_data_inner(**kwargs):
-    result = []
     for k, x in kwargs.items():
-        data = None  # 默认赋值为 None
         if k == 'int':
             data = random.randint(x.get('min', 0), x.get('max', 100))
+            yield data
         elif k == 'float':
             data = random.uniform(x.get('min', 0.0), x.get('max', 1.0))
+            yield data
         elif k == 'str':
             chars = x.get('chars', 'abcdefghijklmnopqrstuvwxyz0123456789')
             data = ''.join(random.choices(chars, k=x.get('len', 1)))
+            yield data
         elif k == 'tuple':
-            data = tuple(generate_data_inner(**x) for _ in range(x.get('size', 1)))
+            yield tuple(generate_data_inner(**x) for _ in range(x.get('size', 1)))
         elif k == 'list':
-            data = [generate_data_inner(**x) for _ in range(x.get('size', 1))]
+            yield [generate_data_inner(**x) for _ in range(x.get('size', 1))]
         elif k == 'set':
-            data = {tuple(generate_data_inner(**x)) for _ in range(x.get('size', 1))}
-        result.append(data)
-    return result
+            yield {tuple(generate_data_inner(**x)) for _ in range(x.get('size', 1))}
 
 def generate_data(**kwargs):
     for _ in range(kwargs.get('num', 1)):
-        yield generate_data_inner(**kwargs)
+        data = list(generate_data_inner(**kwargs))
+        yield data
+
+def summarize_sample(sample):
+    integers = [item for item in sample if isinstance(item, int)]
+    floats = [item for item in sample if isinstance(item, float)]
+
+    int_sum = sum(integers)
+    int_avg = int_sum / len(integers) if integers else None
+
+    float_sum = sum(floats)
+    float_avg = float_sum / len(floats) if floats else None
+
+    return int_sum, int_avg, float_sum, float_avg
 
 if __name__ == '__main__':
     for sample in generate_data(
@@ -39,4 +51,11 @@ if __name__ == '__main__':
             }
         }
     ):
-        print(sample)
+        int_sum, int_avg, float_sum, float_avg = summarize_sample(sample)
+
+        print("Sample:", sample)
+        print("Integers Sum:", int_sum)
+        print("Integers Average:", int_avg)
+        print("Floats Sum:", float_sum)
+        print("Floats Average:", float_avg)
+        print()
