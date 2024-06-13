@@ -10,21 +10,12 @@ def generate_data(**kwargs):
         elif k == 'str':
             chars = x.get('chars', 'abcdefghijklmnopqrstuvwxyz0123456789')
             data = [''.join(random.choices(chars, k=x.get('len', 1))) for _ in range(x.get('size', 1))]
-        elif k == 'tuple':
-            if 'size' in x:
-                data = tuple(generate_data(**x) for _ in range(x['size']))
-            else:
-                data = tuple(generate_data(**x))
-        elif k == 'list':
+        elif k in ('tuple', 'list', 'set'):
             if 'size' in x:
                 data = [generate_data(**x) for _ in range(x['size'])]
+                data = tuple(data) if k == 'tuple' else list(data) if k == 'list' else {tuple(data)}
             else:
-                data = [generate_data(**x)]
-        elif k == 'set':
-            if 'size' in x:
-                data = {tuple(generate_data(**x)) for _ in range(x['size'])}
-            else:
-                data = {tuple(generate_data(**x))}
+                data = generate_data(**x)
         result.append(data)
     return result
 

@@ -33,12 +33,8 @@ def generate_data(**kwargs):
 def my_decorator(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
-        print("Function is about to execute with arguments:", args, kwargs)
-
         result = func(*args, **kwargs)
-
         end_time = time.time()
-        print(f"Function {func.__name__} executed in {end_time - start_time} seconds")
         return result
 
     return wrapper
