@@ -1,0 +1,108 @@
+import random
+import string
+from collections import defaultdict
+
+# 装饰器，用于统计数据类型
+def count_data_types(func):
+    def wrapper(self, structure, *args, **kwargs):
+        result = func(self, structure)
+        dtype = structure['datatype']
+        if dtype in ('tuple', 'list'):
+            for item in result:
+                self._update_type_count(item)
+        else:
+            self.type_counts[dtype] += 1
+        return result
+    return wrapper
+
+class RandomDataGenerator:
+    def __init__(self, schema):
+        self.schema = schema
+        self.type_counts = defaultdict(int)
+
+    @count_data_types
+    def generate_data(self, structure):
+        dtype = structure['datatype']
+        generator_map = {
+            'tuple': self._generate_tuple,
+            'list': self._generate_list,
+            'int': self._generate_int,
+            'float': self._generate_float,
+            'str': self._generate_str
+        }
+        return generator_map[dtype](structure)
+
+    def _generate_tuple(self, structure):
+        return tuple(self.generate_data(sub) for sub in structure['subs'].values())
+
+    def _generate_list(self, structure):
+        return [self.generate_data(sub) for sub in structure['subs'].values()]
+
+    def _generate_int(self, structure):
+        return random.randint(*structure['datarange'])
+
+    def _generate_float(self, structure):
+        return random.uniform(*structure['datarange'])
+
+    def _generate_str(self, structure):
+        length = random.randint(*structure['datarange'])
+        return ''.join(random.choices(string.ascii_uppercase, k=length))
+
+    def _update_type_count(self, data):
+        if isinstance(data, (tuple, list)):
+            for item in data:
+                self._update_type_count(item)
+        else:
+            self.type_counts[type(data).__name__] += 1
+
+    def generate_multiple_sets(self, num_sets):
+        return [self.generate_data(self.schema) for _ in range(num_sets)]
+
+# 用户定义的数据结构模板
+data_structure = {
+    'datatype': 'tuple',
+    'subs': {
+        'section1': {
+            'datatype': 'list',
+            'subs': {
+                'item1': {
+                    'datatype': 'int',
+                    'datarange': (0, 100)
+                },
+                'item2': {
+                    'datatype': 'str',
+                    'datarange': (1, 100)
+                }
+            }
+        },
+        'section2': {
+            'datatype': 'list',
+            'subs': {
+                'item1': {
+                    'datatype': 'float',
+                    'datarange': (0, 5000)
+                },
+                'item2': {
+                    'datatype': 'int',
+                    'datarange': (1, 200)
+                }
+            }
+        },
+        'section3': {
+            'datatype': 'str',
+            'datarange': (1, 10)
+        }
+    }
+}
+
+# 创建数据生成器实例
+generator = RandomDataGenerator(data_structure)
+
+# 生成多组随机数据
+num_sets = 100
+generated_data_sets = generator.generate_multiple_sets(num_sets)
+
+# 打印生成的数据和计数结果
+for data_set in generated_data_sets:
+    print(data_set)
+print("Data type counts:", dict(generator.type_counts))
