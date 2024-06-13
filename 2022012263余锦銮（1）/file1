@@ -1,1 +1,61 @@
+import random
+import string
+
+def produce_data(template):
+    if template['datatype'] == 'tuple':
+        nested_data = [produce_data(subtemplate) for subtemplate in template['subs'].values()]
+        return tuple(nested_data)
+    elif template['datatype'] == 'list':
+        nested_data = [produce_data(subtemplate) for subtemplate in template['subs'].values()]
+        return nested_data
+    elif template['datatype'] == 'int':
+        return random.randint(*template['datarange'])
+    elif template['datatype'] == 'float':
+        return random.uniform(*template['datarange'])
+    elif template['datatype'] == 'str':
+        size = random.randint(*template['datarange'])
+        return ''.join(random.choices(string.ascii_uppercase, k=size))
+
+# 用户定义的数据结构模板
+data_template = {
+    'datatype': 'tuple',
+    'subs': {
+        'part1': {
+            'datatype': 'list',
+            'subs': {
+                'item1': {
+                    'datatype': 'int',
+                    'datarange': (0, 100)
+                },
+                'item2': {
+                    'datatype': 'str',
+                    'datarange': (0, 10)  # 假设第二个值是字符串的长度
+                }
+            }
+        },
+        'part2': {
+            'datatype': 'list',
+            'subs': {
+                'item1': {
+                    'datatype': 'float',
+                    'datarange': (0, 5000)
+                },
+                'item2': {
+                    'datatype': 'int',
+                    'datarange': (1, 200)
+                }
+            }
+        },
+        'part3': {
+            'datatype': 'str',
+            'datarange': (0, 5)  # 同样，假设第二个值是字符串的长度
+        }
+    }
+}
+
+# 生成多组随机数据
+data_sets_count = 10
+for _ in range(data_sets_count):
+    data_output = produce_data(data_template)
+    print(data_output)
 
