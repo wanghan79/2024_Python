@@ -1,0 +1,129 @@
+import random
+import string
+from functools import wraps
+from collections import defaultdict
+
+example = {
+    "datatype": tuple,
+    "subs": {
+        "sub1": {
+            "datatype": list,
+            "subs": {
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 1000)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_uppercase,
+                    "len": 7
+                },
+                "sub3": {
+                    "datatype": float,
+                    "datarange": (0, 600)
+                }
+            }
+        },
+        "sub2": {
+            "datatype": tuple,
+            "subs": {
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 300)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_uppercase,
+                    "len": 5
+                }
+            }
+        },
+        "sub3": {
+            "datatype": str,
+            "datarange": string.ascii_uppercase,
+            "len": 3
+        }
+    }
+}
+class DataGenerator:
+    def __init__(self, template):
+        self.template = template
+        self.type_counter = defaultdict(int)
+
+    def generate_data(self, template=None):
+        if template is None:
+            template = self.template
+
+        datatype = template["datatype"]
+        subs = template.get("subs", {})
+
+        result = self._init_result(datatype)
+
+        for key, value in subs.items():
+            data = self._generate_value(value)
+            result = self._assign_result(datatype, result, key, data)
+
+        return result
+
+    def _init_result(self, datatype):
+        if datatype == tuple:
+            return ()
+        elif datatype == list:
+            return []
+        elif datatype == dict:
+            return {}
+        elif datatype == set:
+            return set()
+
+    def _generate_value(self, value):
+        if "datatype" in value and "datarange" in value:
+            return self._generate_base_type(value)
+        else:
+            return self.generate_data(value)
+
+    def _generate_base_type(self, value):
+        dtype = value["datatype"]
+        data_range = value["datarange"]
+        if dtype == int:
+            result = random.randint(*data_range)
+        elif dtype == float:
+            result = random.uniform(*data_range)
+        elif dtype == bool:
+            result = random.choice([True, False])
+        elif dtype == str:
+            strlen = value.get("len", 1)
+            result = ''.join(random.choices(data_range, k=strlen))
+        self.type_counter[dtype.__name__] += 1
+        return result
+
+    def _assign_result(self, datatype, result, key, data):
+        if datatype == tuple:
+            result += (data,)
+        elif datatype == list:
+            result.append(data)
+        elif datatype == dict:
+            result[key] = data
+        elif datatype == set:
+            result.add(data)
+        return result
+
+# 装饰器，用于生成数据和统计类型计数
+def data_counter(template):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            generator = DataGenerator(template)
+            generated_data = generator.generate_data()
+            counts = generator.type_counter
+            return func(generated_data, counts, *args, **kwargs)
+        return wrapper
+    return decorator
+
+# 目标函数，处理生成的数据及其统计信息
+@data_counter(example)
+def my_function(generated_data, counts):
+    print("生成的数据:", generated_data)
+    print("类型计数:", dict(counts))
+
+# 调用目标函数
+my_function()

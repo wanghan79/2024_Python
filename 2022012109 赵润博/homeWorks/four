@@ -1,0 +1,149 @@
+import random
+import string
+from collections import defaultdict
+
+example = {
+    "datatype": tuple,
+    "subs": {
+        "sub1": {
+            "datatype": list,
+            "subs": {
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 1000)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_uppercase,
+                    "len": 7
+                },
+                "sub3": {
+                    "datatype": float,
+                    "datarange": (0, 600)
+                }
+            }
+        },
+        "sub2": {
+            "datatype": tuple,
+            "subs": {
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 300)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_uppercase,
+                    "len": 5
+                }
+            }
+        },
+        "sub3": {
+            "datatype": str,
+            "datarange": string.ascii_uppercase,
+            "len": 3
+        }
+    }
+}
+
+class DataGenerator:
+    def __init__(self, template):
+        self.template = template
+        self.type_counter = defaultdict(int)
+        self.result = []
+
+    def generate_data(self, template=None):
+        if template is None:
+            template = self.template
+
+        datatype = template["datatype"]
+        subs = template.get("subs", {})
+
+        result = self._init_result(datatype)
+
+        for key, value in subs.items():
+            data = self._generate_value(value)
+            result = self._assign_result(datatype, result, key, data)
+
+        self.result.append(result)
+        yield result
+
+    def _init_result(self, datatype):
+        if datatype == tuple:
+            return ()
+        elif datatype == list:
+            return []
+        elif datatype == dict:
+            return {}
+        elif datatype == set:
+            return set()
+
+    def _generate_value(self, value):
+        if "datatype" in value and "datarange" in value:
+            return self._generate_base_type(value)
+        else:
+            return next(self.generate_data(value))
+
+    def _generate_base_type(self, value):
+        dtype = value["datatype"]
+        data_range = value["datarange"]
+        if dtype == int:
+            result = random.randint(*data_range)
+        elif dtype == float:
+            result = random.uniform(*data_range)
+        elif dtype == bool:
+            result = random.choice([True, False])
+        elif dtype == str:
+            strlen = value.get("len", 1)
+            result = ''.join(random.choices(data_range, k=strlen))
+        self.type_counter[dtype.__name__] += 1
+        return result
+
+    def _assign_result(self, datatype, result, key, data):
+        if datatype == tuple:
+            result += (data,)
+        elif datatype == list:
+            result.append(data)
+        elif datatype == dict:
+            result[key] = data
+        elif datatype == set:
+            result.add(data)
+        return result
+
+    def _extract_numbers(self, data):
+        if isinstance(data, (int, float)):
+            return [data]
+        elif isinstance(data, (list, tuple, set)):
+            nums = []
+            for item in data:
+                nums.extend(self._extract_numbers(item))
+            return nums
+        elif isinstance(data, dict):
+            nums = []
+            for item in data.values():
+                nums.extend(self._extract_numbers(item))
+            return nums
+        return []
+
+    def mean_number(self):
+        nums = []
+        for item in self.result:
+            nums.extend(self._extract_numbers(item))
+        if len(nums) == 0:
+            return 0
+        else:
+            return sum(nums) / len(nums)
+
+    def len_number(self):
+        nums = []
+        for item in self.result:
+            nums.extend(self._extract_numbers(item))
+        return len(nums)
+
+times = int(input("你想要生成几次:"))
+data_process_instance = DataGenerator(example)
+for i in range(times):
+    generated_data = next(data_process_instance.generate_data())
+    print("生成的数据:", generated_data)
+    print("类型计数:", dict(data_process_instance.type_counter))
+    print("平均数:", data_process_instance.mean_number())
+    print("数字数量:", data_process_instance.len_number())

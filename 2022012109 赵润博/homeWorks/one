@@ -1,0 +1,83 @@
+import random
+import string
+
+example = {
+    "datatype": tuple,
+    "subs": {
+        "sub1": {
+            "datatype": list,
+            "subs": {
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 1000)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_uppercase,
+                    "len": 7
+                },
+                "sub3":{
+                    "datatype": float,
+                    "datarange": (0, 600)
+                }
+            }
+        },
+        "sub2": {
+            "datatype": tuple,
+            "subs": {
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 300)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_uppercase,
+                    "len": 5
+                }
+            }
+        },
+        "sub3": {
+            "datatype": str,
+            "datarange": string.ascii_uppercase,
+            "len": 3
+        }
+    }
+}
+
+
+def generate_data(template):
+    datatype = template.get("datatype")
+    subs = template.get("subs", {})
+
+    result = {
+        tuple: (),
+        list: [],
+        dict: {},
+        set: set()
+    }[datatype]
+
+    for key, value in subs.items():
+        data = generate_item(value)
+        if datatype == tuple:
+            result += (data,)
+        elif datatype == list:
+            result.append(data)
+        elif datatype == dict:
+            result[key] = data
+        elif datatype == set:
+            result.add(data)
+
+    return result
+def generate_item(value):
+    if "datatype" in value and "datarange" in value:
+        if value["datatype"] == int:
+            return random.randint(*value["datarange"])
+        elif value["datatype"] == float:
+            return random.uniform(*value["datarange"])
+        elif value["datatype"] == bool:
+            return random.choice([True, False])
+        elif value["datatype"] == str:
+            return ''.join(random.choice(value["datarange"]) for _ in range(value.get("len", 1)))
+    return generate_data(value)
+
+print(generate_data(example))

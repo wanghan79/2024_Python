@@ -1,0 +1,107 @@
+import random
+import string
+
+example = {
+    "datatype": tuple,
+    "subs": {
+        "sub1": {
+            "datatype": list,
+            "subs": {
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 1000)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_uppercase,
+                    "len": 7
+                },
+                "sub3": {
+                    "datatype": float,
+                    "datarange": (0, 600)
+                }
+            }
+        },
+        "sub2": {
+            "datatype": tuple,
+            "subs": {
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 300)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_uppercase,
+                    "len": 5
+                }
+            }
+        },
+        "sub3": {
+            "datatype": str,
+            "datarange": string.ascii_uppercase,
+            "len": 3
+        }
+    }
+}
+
+class DataGenerator:
+    def __init__(self, template):
+        self.template = template
+
+    def generate_data(self, template=None):
+        if template is None:
+            template = self.template
+
+        datatype = template["datatype"]
+        subs = template.get("subs", {})
+
+        result = self._init_result(datatype)
+
+        for key, value in subs.items():
+            data = self._generate_value(value)
+            result = self._assign_result(datatype, result, key, data)
+
+        return result
+
+    def _init_result(self, datatype):
+        if datatype == tuple:
+            return ()
+        elif datatype == list:
+            return []
+        elif datatype == dict:
+            return {}
+        elif datatype == set:
+            return set()
+
+    def _generate_value(self, value):
+        if "datatype" in value and "datarange" in value:
+            return self._generate_base_type(value)
+        else:
+            return self.generate_data(value)
+
+    def _generate_base_type(self, value):
+        dtype = value["datatype"]
+        data_range = value["datarange"]
+        if dtype == int:
+            return random.randint(*data_range)
+        elif dtype == float:
+            return random.uniform(*data_range)
+        elif dtype == bool:
+            return random.choice([True, False])
+        elif dtype == str:
+            strlen = value.get("len", 1)
+            return ''.join(random.choices(data_range, k=strlen))
+
+    def _assign_result(self, datatype, result, key, data):
+        if datatype == tuple:
+            result += (data,)
+        elif datatype == list:
+            result.append(data)
+        elif datatype == dict:
+            result[key] = data
+        elif datatype == set:
+            result.add(data)
+        return result
+
+generator = DataGenerator(example)
+print(generator.generate_data())
