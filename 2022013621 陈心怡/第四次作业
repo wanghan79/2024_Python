@@ -2,35 +2,77 @@ import random
 import string
 
 def dataSampling(kwargs):
-    if kwargs['datatype'] == 'int':
+    if kwargs.get('datatype') == 'int':
         it = iter(kwargs['datarange'])
         yield random.randint(next(it), next(it))
-    elif kwargs['datatype'] == 'float':
+    elif kwargs.get('datatype') == 'float':
         it = iter(kwargs['datarange'])
         yield random.uniform(next(it), next(it))
-    elif kwargs['datatype'] == 'str':
+    elif kwargs.get('datatype') == 'str':
         if isinstance(kwargs['datarange'], int):
             yield ''.join(random.SystemRandom().choice(string.ascii_uppercase) for _ in range(kwargs['datarange']))
-    elif kwargs['datatype'] in ('list', 'tuple'):
+    elif kwargs.get('datatype') in ('list', 'tuple'):
         elements = []
+        for i in range(kwargs.get('length', 5)):  # 添加对长度的支持，默认长度为5
+            sub_data = []
+            for key, sub_kwargs in kwargs['subs'].items():
+                sub_data.append(next(dataSampling(sub_kwargs)))
+            if kwargs.get('datatype') == 'tuple':
+                elements.append(tuple(sub_data))
+            else:
+                elements.append(sub_data)
+        yield elements
+    elif kwargs.get('datatype') == 'dict':
+        data = {}
         for key, sub_kwargs in kwargs['subs'].items():
-            yield from dataSampling(sub_kwargs)
-    elif kwargs['datatype'] == 'dict':
-        result_dict = {}
-        for key, sub_kwargs in kwargs['subs'].items():
-            result_dict[key] = yield from dataSampling(sub_kwargs)
-        yield result_dict
+            data[key] = next(dataSampling(sub_kwargs))
+        yield data
     else:
-        raise ValueError("Unknown data type")
+        raise ValueError("Unknown data type: {}".format(kwargs.get('datatype')))
 
-def apply(**kwargs):
-    for _ in range(kwargs['num']):
-        yield from dataSampling(kwargs['struct'])
+def Analysis(data, *args):
+    if isinstance(data, dict):
+        if args:
+            if args[0] == 'sum':
+                total = 0
+                for value in data.values():
+                    if isinstance(value, (int, float)):
+                        total += value
+                    elif isinstance(value, (list, tuple)):
+                        total += sum(int(val) for val, _ in value)
+                    elif isinstance(value, dict):
+                        sub_result = next(Analysis(value, *args), None)
+                        if sub_result is not None:
+                            total += sub_result
+                yield total
+            elif args[0] == 'mean':
+                total_sum = 0
+                total_count = 0
+                for value in data.values():
+                    if isinstance(value, (int, float)):
+                        total_sum += value
+                        total_count += 1
+                    elif isinstance(value, (list, tuple)):
+                        total_sum += sum(int(val) for val, _ in value)
+                        total_count += len(value)
+                    elif isinstance(value, dict):
+                        sub_sum, sub_count = next(Analysis(value, *args), (None, None))
+                        if sub_sum is not None and sub_count is not None:
+                            total_sum += sub_sum
+                            total_count += sub_count
+                yield total_sum, total_count
+    elif isinstance(data, (list, tuple)):
+        if args:
+            if args[0] == 'sum':
+                yield sum(data)
+            elif args[0] == 'mean':
+                yield sum(data), len(data)
 
+# 参数定义
 para = {
     "num": 5,
     "struct": {
-        "datatype": "tuple",
+        "datatype": "dict",
         "subs": {
             "sub1": {
                 "datatype": "tuple",
@@ -47,26 +89,25 @@ para = {
             },
             "sub2": {
                 "datatype": "str",
-                "datarange": 10  # 指定字符串长度为10
-            },
-            "sub3": {
-                "datatype": "list",
-                "subs": {
-                    "sub1": {
-                        "datatype": "int",
-                        "datarange": (89, 200)
-                    },
-                    "sub2": {
-                        "datatype": "float",
-                        "datarange": (7, 10)
-                    }
-                }
+                "datarange": 10
             }
         }
     }
 }
 
-results = apply(**para)
-for result in results:
-    print(result)
+# 随机生成字典
+random_dict_gen = dataSampling(para['struct'])
+try:
+    random_dict = next(random_dict_gen)
+    print("随机生成的字典：", random_dict)
+except StopIteration:
+    print("生成器已经生成完所有值。")
 
+# 运算结果
+result_gen = Analysis(random_dict, 'sum')
+result = next(result_gen)
+print("运算结果：", result)
+
+result_gen = Analysis(random_dict, 'mean')
+result = next(result_gen)
+print("平均值运算结果：", result)
