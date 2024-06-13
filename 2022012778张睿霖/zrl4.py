@@ -1,44 +1,50 @@
 import random
 
-def generate_data_inner(**kwargs):
-    for k, x in kwargs.items():
-        if k == 'int':
-            data = random.randint(x.get('min', 0), x.get('max', 100))
-            yield data
-        elif k == 'float':
-            data = random.uniform(x.get('min', 0.0), x.get('max', 1.0))
-            yield data
-        elif k == 'str':
-            chars = x.get('chars', 'abcdefghijklmnopqrstuvwxyz0123456789')
-            data = ''.join(random.choices(chars, k=x.get('len', 1)))
-            yield data
-        elif k == 'tuple':
-            yield tuple(generate_data_inner(**x) for _ in range(x.get('size', 1)))
-        elif k == 'list':
-            yield [generate_data_inner(**x) for _ in range(x.get('size', 1))]
-        elif k == 'set':
-            yield {tuple(generate_data_inner(**x)) for _ in range(x.get('size', 1))}
+class DataGenerator:
+    def generate(self, **kwargs):
+        for _ in range(kwargs.get('size', 1)):
+            data = self._generate_data(**kwargs)
+            int_sum, int_count, float_sum, float_count = self._summarize_data(data)
+            int_avg = int_sum / max(int_count, 1)
+            float_avg = float_sum / max(float_count, 1)
+            yield data, int_sum, float_sum, int_avg, float_avg
 
-def generate_data(**kwargs):
-    for _ in range(kwargs.get('num', 1)):
-        data = list(generate_data_inner(**kwargs))
-        yield data
+    def _generate_data(self, **kwargs):
+        result = []
+        for key, value in kwargs.items():
+            if key == 'int':
+                for _ in range(value.get('size', 1)):
+                    result.append(random.randint(value.get('min', 0), value.get('max', 100)))
+            elif key == 'float':
+                for _ in range(value.get('size', 1)):
+                    result.append(random.uniform(value.get('min', 0.0), value.get('max', 1.0)))
+            elif key == 'str':
+                chars = value.get('chars', 'abcdefghijklmnopqrstuvwxyz0123456789')
+                for _ in range(value.get('size', 1)):
+                    result.append(''.join(random.choices(chars, k=value.get('len', 1))))
+            elif key in ('tuple', 'list', 'set'):
+                gen_func = self._generate_data(**value) if 'size' in value else [self._generate_data(**value)]
+                if key == 'set':
+                    for _ in range(value.get('size', 1)):
+                        result.append(tuple(gen_func))
+                else:
+                    result.extend(gen_func)
+        return result
 
-def summarize_sample(sample):
-    integers = [item for item in sample if isinstance(item, int)]
-    floats = [item for item in sample if isinstance(item, float)]
-
-    int_sum = sum(integers)
-    int_avg = int_sum / len(integers) if integers else None
-
-    float_sum = sum(floats)
-    float_avg = float_sum / len(floats) if floats else None
-
-    return int_sum, int_avg, float_sum, float_avg
+    def _summarize_data(self, data):
+        int_sum, int_count, float_sum, float_count = 0, 0, 0, 0
+        for item in data:
+            if isinstance(item, int):
+                int_sum += item
+                int_count += 1
+            elif isinstance(item, float):
+                float_sum += item
+                float_count += 1
+        return int_sum, int_count, float_sum, float_count
 
 if __name__ == '__main__':
-    for sample in generate_data(
-        num=5,
+    generator = DataGenerator()
+    for data, int_sum, float_sum, int_avg, float_avg in generator.generate(
         int={'min': 10, 'max': 20, 'size': 7},
         tuple={
             'list': {'int': {'min': 5, 'max': 15, 'size': 3}},
@@ -51,11 +57,8 @@ if __name__ == '__main__':
             }
         }
     ):
-        int_sum, int_avg, float_sum, float_avg = summarize_sample(sample)
-
-        print("Sample:", sample)
-        print("Integers Sum:", int_sum)
-        print("Integers Average:", int_avg)
-        print("Floats Sum:", float_sum)
-        print("Floats Average:", float_avg)
-        print()
+        print("Generated Data:", data)
+        print("Sum of Integers:", int_sum)
+        print("Sum of Floats:", float_sum)
+        print("Average of Integers:", int_avg)
+        print("Average of Floats:", float_avg)
