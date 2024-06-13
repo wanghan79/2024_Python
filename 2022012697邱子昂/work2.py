@@ -43,8 +43,14 @@ example = {
         "sub1": {
             "datatype": list,
             "subs": {
-                "sub1": {"datatype": float, "datarange": (0, 5000)},
-                "sub2": {"datatype": int, "datarange": (0, 50)}
+                "sub1": {
+                    "datatype": float, 
+                    "datarange": (0, 5000)
+                },
+                "sub2": {
+                    "datatype": int,
+                    "datarange": (0, 50)
+                }
             }
         },
         "sub2": {
@@ -54,9 +60,18 @@ example = {
         "sub3": {
             "datatype": tuple,
             "subs": {
-                "sub1": {"datatype": int, "datarange": (0, 100)},
-                "sub2": {"datatype": str, "datarange": string.ascii_lowercase},
-                "sub3": {"datatype": str, "datarange": string.digits}
+                "sub1": {
+                    "datatype": int,
+                    "datarange": (0, 100)
+                },
+                "sub2": {
+                    "datatype": str,
+                    "datarange": string.ascii_lowercase
+                },
+                "sub3": {
+                    "datatype": str, 
+                    "datarange": string.digits
+                }
             }
         }
     }
