@@ -1,4 +1,5 @@
 import random
+import string
 
 def decorator(aClass):
     class DecoratorClass():
@@ -6,59 +7,89 @@ def decorator(aClass):
             self.aClass = aClass()
 
         def dataExtraction(self, example, num):
-            print(self.aClass.dataExtraction(example, num))
+            extracted_data = self.aClass.dataExtraction(example, num)
+            formatted_data = "{" + ", ".join([str(data) for data in extracted_data]) + "}"
+            print(formatted_data)
 
     return DecoratorClass
-
 
 @decorator
 class DataProcessor:
     def __init__(self):
         self.data_range = {
-            'name': {'John', 'Smith'},
+            'name': {'John', 'Smith', 'Bob'},
             'age': {'20', '18', '22'},
             'id': {'1', '2', '4'}
         }
-    """dataSampling(datatype, datarange, num, strlen=10): 这个函数用于从指定的数据范围中随机抽样生成一定数量的数据。
-    根据输入的数据类型 datatype，数据范围 datarange，生成数量 num，以及字符串长度 strlen（仅在数据类型为字符串时有效），返回一个集合（set）包含随机生成的数据样本。
-    def dataSampling(self, datatype, datarange, num, strlen=10):
-        result = set()
-        for index in range(num):
-            if datatype == int:
-                item = random.randint(datarange[0], datarange[1])
-                result.add(item)
-            elif datatype == float:
-                item = random.uniform(datarange[0], datarange[1])
-                result.add(item)
-            elif datatype == str:
-                item = ''.join(random.choices(datarange, k=strlen))
-                result.add(item)
+
+        self.example_template = {
+            "datatype": tuple,
+            "subs": {
+                "name": {
+                    "datatype": str,
+                    "datarange": self.data_range['name'],
+                    "len": 1  # specifying length 1 for single random choice
+                },
+                "age": {
+                    "datatype": str,
+                    "datarange": self.data_range['age'],
+                    "len": 1
+                },
+                "id": {
+                    "datatype": str,
+                    "datarange": self.data_range['id'],
+                    "len": 1
+                }
+            }
+        }
+
+    def generate_data(self, template):
+        datatype = template.get("datatype")
+        subs = template.get("subs", {})
+
+        result = {
+            tuple: (),
+            list: [],
+            dict: {},
+            set: set()
+        }[datatype]
+
+        for key, value in subs.items():
+            data = self.generate_item(value)
+            if datatype == tuple:
+                result += (data,)
+            elif datatype == list:
+                result.append(data)
+            elif datatype == dict:
+                result[key] = data
+            elif datatype == set:
+                result.add(data)
+
         return result
-    dataExtraction(example, data_range, num): 这个函数根据给定的示例和数据范围，从数据范围中抽取数据，形成一组数据集合。"""
+
+    def generate_item(self, value):
+        if "datatype" in value and "datarange" in value:
+            if value["datatype"] == int:
+                return random.randint(*value["datarange"])
+            elif value["datatype"] == float:
+                return random.uniform(*value["datarange"])
+            elif value["datatype"] == bool:
+                return random.choice([True, False])
+            elif value["datatype"] == str:
+                datarange_list = list(value["datarange"])  # Convert set to list
+                return ''.join(random.choices(datarange_list, k=value.get("len", 1)))
+        return self.generate_data(value)
+
     def dataExtraction(self, example, num):
         result = set()
         for _ in range(num):
-            temp = []
-            for i in example:
-                if i in self.data_range:
-                    item = random.choice(list(self.data_range[i]))
-                    temp.append(item)
-            result.add(tuple(temp))
+            extracted_data = self.generate_data(self.example_template)
+            result.add(extracted_data)
         return result
 
-
-
-
 if __name__ == '__main__':
-    dataProcessor = DataProcessor()
-    dataProcessor.dataExtraction(example=('id', 'name', 'age'), num=10)
+    processor = DataProcessor()
 
+    example = ('name', 'age', 'id')  # Define example here
+    processor.dataExtraction(example, num=3)
 
-'''
-processor = DataProcessor()
- example = ('name', 'age', 'id')
- extracted_data = processor.dataExtraction(example, num=3)
- print("随机抽取的数据集：")
- for data in extracted_data:
-     print(data)
- '''
