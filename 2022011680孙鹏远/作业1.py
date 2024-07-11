@@ -10,7 +10,7 @@ class Class:
         self.number = number
 
     def __repr__(self):
-        return f"Class name:{self.name} number:{self.number} ID:{self.ID} Howloud{self.Howloud}/......"
+        return f"Class name:{self.name} number:{self.number} ID:{self.ID} Howloud:{self.Howloud} "
     
 class Voice:
     def __init__(self,db,smell):
@@ -18,7 +18,7 @@ class Voice:
         self.smell = smell
     
     def __repr__(self):
-        return f"######Voice db:{self.db} smell:{self.smell} ******"
+        return f"Voice db:{self.db} smell:{self.smell}"
 
 def generate_random_data(**structure):
     data_type = structure["TypeSub"]
@@ -33,6 +33,11 @@ def generate_random_data(**structure):
         return [generate_random_data(**sub_structure) for sub_structure in structure["Subs"].values()]
     elif data_type == tuple:
         return tuple(generate_random_data(**sub_structure) for sub_structure in structure["Subs"].values())
+    elif data_type == dict:
+        return {key: generate_random_data(**sub_structure) for key, sub_structure in structure["Subs"].items()}
+        # return dict(generate_random_data(**sub_structure) for sub_structure in structure["Subs"].values())
+    elif data_type == set:
+        return {generate_random_data(**sub_structure) for sub_structure in structure["Subs"].values()}
     # elif data_type == Class:
     #     subs = structure["Subs"]
     #     return Class(generate_random_data(subs))
@@ -49,7 +54,7 @@ DictStuct={
     "TypeSub":tuple,
     "Subs":{
         "Sociaty":{
-            "TypeSub":list,
+            "TypeSub":dict,
             "Subs":{
                 "Level":{
                     "TypeSub":int,
@@ -63,7 +68,7 @@ DictStuct={
             },
         },
         "Location":{
-            "TypeSub":tuple,
+            "TypeSub":set,
             "Subs":{
                 "North_Latitude":{
                     "TypeSub":float,
@@ -137,3 +142,4 @@ DictStuct={
 # 生成随机数据
 random_data = generate_random_data(**DictStuct)
 print(random_data)
+# print(type(random_data[0]))
